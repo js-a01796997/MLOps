@@ -1,0 +1,5 @@
+outs:
+- md5: 2e92088f4617dfee0ec48a6452a6375a
+  size: 279992
+  hash: md5
+  path: bike+sharing+dataset.zip
