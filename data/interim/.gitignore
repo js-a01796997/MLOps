@@ -1,0 +1,7 @@
+# ignore everything here…
+*
+# …but keep the ignore file (and DVC pointers if any live here)
+!.gitignore
+!*.dvc
+# (or keep a placeholder)
+!.gitkeep
