@@ -5,3 +5,4 @@ __pycache__/
 .vscode/
 .idea/
 .dvc/tmp/
+data/processed/*.csv
