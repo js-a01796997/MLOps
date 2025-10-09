@@ -1,0 +1,9 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/data_cleaning.py
+    deps:
+    - path: src/data_cleaning.py
+      hash: md5
+      md5: f798705f704dc642602dffb254a5ced6
+      size: 2766

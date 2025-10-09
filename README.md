@@ -31,3 +31,9 @@ Este comando:
 - Crea un entorno virtual automáticamente
 - Instala todas las dependencias definidas en `pyproject.toml`
 - Genera/actualiza el archivo `uv.lock` para asegurar reproducibilidad
+
+# Ejecución con dvc
+`dvc.yaml` contiene las etapas de ejecución de este proyecto, para ejecutar usa el siguiente comando: `dvc repro`
+
+## Etapas
+- `preprocess`: esta etapa esta a cargo de leer los datos y limpiarlos
