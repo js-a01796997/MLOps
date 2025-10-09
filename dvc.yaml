@@ -1,6 +1,6 @@
 stages:
   preprocess:
-    cmd: python src/data_cleaning.py # data/raw/bike_sharing_modified.csv data/processed/bike_sharing_cleaned.csv
+    cmd: python3 src/data_cleaning.py # data/raw/bike_sharing_modified.csv data/processed/bike_sharing_cleaned.csv
     deps:
       - src/data_cleaning.py
       # - data/raw/bike_sharing_modified.csv
