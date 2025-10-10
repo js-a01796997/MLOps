@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from clean_utils import clean_weather_var
 
 #Se obtiene el directorio actual del script
 directorio_data_cleaning = Path(__file__).parent
@@ -11,7 +12,7 @@ file_path = path_mlops/'data'/'raw'/'bike_sharing_modified.csv'
 bike_sharing = pd.read_csv(file_path)
 #print(bike_sharing.head())
 
-print("\n1/10 Información del DataFrame antes de la limpieza:\n")
+print("\n1/14 Información del DataFrame antes de la limpieza:\n")
 print(bike_sharing.info())
 #Columnas que se van a convertir las columnas a tipo int
 to_int_cols = ['instant','season','yr','mnth','hr','holiday','weekday','workingday','weathersit','casual','registered','cnt','mixed_type_col']
@@ -29,7 +30,7 @@ for col in cols:
     #print(f"Column '{col}' contains the following non-numeric values: {non_numeric_values}")
 
 all_non_numeric_values = list(set(all_non_numeric_values))
-print(f'\n2/10 En las columnas: {cols}, \nse encontraron los valores no numéricos: {all_non_numeric_values}\n')
+print(f'\n2/14 En las columnas: {cols}, \nse encontraron los valores no numéricos: {all_non_numeric_values}\n')
 
 #Se reemplazan todos los valores no numéricos
 for col in cols:
@@ -41,7 +42,7 @@ bike_sharing[to_float_cols] = bike_sharing[to_float_cols].astype(float)
 
 #Finalmente se convierte la columna dteday a tipo fecha
 bike_sharing['dteday'] = pd.to_datetime(bike_sharing['dteday'].str.strip(), format='%Y-%m-%d', errors='coerce')
-print("\n3/10 Se convirtió la columna 'dteday' a tipo fecha.\n")
+print("\n3/14 Se convirtió la columna 'dteday' a tipo fecha.\n")
 
 #CORRIGE SEASON
 
@@ -58,7 +59,7 @@ for index, row in bike_sharing.iterrows():
         if not valid_season_rows.empty:
             bike_sharing.loc[index, 'season'] = valid_season_rows.iloc[0]['season']
 
-print('\n4/10 Se corrigió el ruido de la variable season')
+print('\n4/14 Se corrigió el ruido de la variable season')
 
 #CORRIGE YR
 
@@ -92,7 +93,7 @@ for index, row in bike_sharing.iterrows():
 #Elimina la columna auxiliar
 bike_sharing = bike_sharing.drop('year_aux', axis=1)
 
-print('\n5/10 Se corrigió el ruido de la variable yr')
+print('\n5/14 Se corrigió el ruido de la variable yr')
 
 #CORRIGE MNTH
 
@@ -110,7 +111,7 @@ for index, row in bike_sharing.iterrows():
         else :
           bike_sharing.loc[index, 'mnth'] = np.nan
 
-print('\n6/10 Se corrigió el ruido de la variable mnth')
+print('\n6/14 Se corrigió el ruido de la variable mnth')
 
 #CORRIGE WORKINGDAY
 
@@ -135,7 +136,7 @@ for index, row in bike_sharing.iterrows():
 #Los convierte a valores enteros
 bike_sharing['workingday'] = pd.to_numeric(bike_sharing['workingday'], errors='coerce').astype('Int64')
 
-print('\n7/10 Se corrigió el ruido de la variable workingday')
+print('\n7/14 Se corrigió el ruido de la variable workingday')
 
 #CORRIGE WEEKDAY
 
@@ -157,12 +158,28 @@ for index, row in bike_sharing.iterrows():
 #Convierte a enteros
 bike_sharing['weekday'] = pd.to_numeric(bike_sharing['weekday'], errors='coerce').astype('Int64')
 
-print('\n8/10 Se corrigió el ruido de la variable weekday')
+print('\n8/14 Se corrigió el ruido de la variable weekday')
 
-print("\n9/10 Información del DataFrame después de la limpieza:\n")
+#CORRIGE TEMP
+clean_weather_var(bike_sharing, 'temp', 10)
+print('\n9/14 Se corrigió el ruido de la variable temp')
+
+#CORRIGE ATEMP
+clean_weather_var(bike_sharing, 'atemp', 11)
+print('\n10/14 Se corrigió el ruido de la variable atemp')
+
+#CORRIGE HUM
+clean_weather_var(bike_sharing, 'hum', 12)
+print('\n11/14 Se corrigió el ruido de la variable hum')
+
+#CORRIGE WINDSPEED
+clean_weather_var(bike_sharing, 'windspeed', 13)
+print('\n12/17 Se corrigió el ruido de la variable windspeed')
+
+print("\n13/14 Información del DataFrame después de la limpieza:\n")
 print(bike_sharing.info())
 #Se guarda el DataFrame limpio en un nuevo archivo CSV
 output_file_path = path_mlops/'data'/'processed'/'bike_sharing_cleaned.csv'
 bike_sharing.to_csv(output_file_path, index=False)
 
-print(f"\n10/10 El DataFrame limpio se ha guardado en: {output_file_path}\n")
+print(f"\n14/14 El DataFrame limpio se ha guardado en: {output_file_path}\n")

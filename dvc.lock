@@ -5,5 +5,5 @@ stages:
     deps:
     - path: src/data_cleaning.py
       hash: md5
-      md5: 9fae222b0905d5d11d1e873519208113
-      size: 7178
+      md5: 5c328f31f6d58ed87d121f636291c54b
+      size: 7707
