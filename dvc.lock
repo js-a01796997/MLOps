@@ -3,7 +3,22 @@ stages:
   preprocess:
     cmd: python3 src/data_cleaning.py
     deps:
+    - path: data/raw/bike_sharing_modified.csv
+      hash: md5
+      md5: 1484028223d304a18ddd9ce33a1af441
+      size: 1686247
     - path: src/data_cleaning.py
       hash: md5
-      md5: 5c328f31f6d58ed87d121f636291c54b
-      size: 7707
+      md5: 9bd8747275346c51679101dd14f2f52b
+      size: 19375
+  split_data:
+    cmd: python3 src/DataSplit.py
+    deps:
+    - path: data/processed/bike_sharing_cleaned.csv
+      hash: md5
+      md5: 85fe250e0bcda484c7d34374f4ab7ec2
+      size: 1138549
+    - path: src/DataSplit.py
+      hash: md5
+      md5: 311e1defb15cba3e7db295eed8a51c36
+      size: 3180
