@@ -7,3 +7,4 @@ __pycache__/
 .dvc/tmp/
 data/processed/*.csv
 .env
+mlruns/
