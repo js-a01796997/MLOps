@@ -1,0 +1,5 @@
+outs:
+- md5: e842dbd55900bfc62c49491f20d5eb4b
+  size: 1320
+  hash: md5
+  path: modelo_LR.pickle

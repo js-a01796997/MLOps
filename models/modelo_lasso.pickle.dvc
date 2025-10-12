@@ -1,0 +1,5 @@
+outs:
+- md5: b8d7e62975455d72151d477c7235ee70
+  size: 1163
+  hash: md5
+  path: modelo_lasso.pickle

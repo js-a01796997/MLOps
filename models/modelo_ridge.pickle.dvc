@@ -1,0 +1,5 @@
+outs:
+- md5: 618d24fe7c1e53b717a19163b5a89db3
+  size: 1089
+  hash: md5
+  path: modelo_ridge.pickle
