@@ -6,6 +6,10 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.preprocessing import MinMaxScaler
 import pickle
 from pathlib import Path
+import mlflow
+import mlflow.sklearn
+import os
+from dotenv import load_dotenv
 
 #Se obtiene el directorio actual del script
 directorio_actual = Path(__file__).parent
@@ -18,6 +22,14 @@ path_df_valid = f'{path_mlops}/data/processed/valid.csv'
 
 df_train = pd.read_csv(path_df_train)
 df_valid = pd.read_csv(path_df_valid)
+
+# Carga variables de entorno desde .env (si existe) y establece el tracking URI
+load_dotenv()
+if os.getenv("MLFLOW_TRACKING_URI"):
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
+
+mlflow.set_experiment("bs_models")
+mlflow.sklearn.autolog(log_models=True)
 
 # Separa características y objetivo en df_train
 X_train = df_train.drop(columns=['cnt'], axis=1)
@@ -43,39 +55,44 @@ for col in ['yr', 'hr', 'holiday', 'workingday']:
     if col in X_train.columns:
         X_train[col] = X_train[col].fillna(X_train[col].median())
 
-#Ajusta el Grid Search a los datos de entrenamiento
-grid_search.fit(X_train, y_train)
+with mlflow.start_run(run_name="LinearRegression", tags={"stage": "train", "model": "lr", "baseline": "true"}):
+    #Ajusta el Grid Search a los datos de entrenamiento
+    grid_search.fit(X_train, y_train)
 
-# Obtenemos los mejores parámetros y el mejor puntaje
-print("Mejores parámetros encontrados: ", grid_search.best_params_)
-print("Mejor RMSE encontrado: ", -grid_search.best_score_)
+    # Obtenemos los mejores parámetros y el mejor puntaje
+    print("Mejores parámetros encontrados: ", grid_search.best_params_)
+    print("Mejor RMSE encontrado: ", -grid_search.best_score_)
 
-# Evalúa el modelo en el conjunto de validación
-# Separa características y objetivo en df_valid
-y_valid = df_valid['cnt']
-X_valid = df_valid.drop('cnt', axis=1)
-
-
-# Imputamos valores faltantes en el conjunto de validación
-for col in ['yr', 'hr', 'holiday', 'workingday']:
-    if col in X_valid.columns:
-        X_valid[col] = X_valid[col].fillna(X_valid[col].median())
+    # Evalúa el modelo en el conjunto de validación
+    # Separa características y objetivo en df_valid
+    y_valid = df_valid['cnt']
+    X_valid = df_valid.drop('cnt', axis=1)
 
 
-# Hacemos predicción en el conjunto de validación.
-yhat_valid = grid_search.predict(X_valid)
+    # Imputamos valores faltantes en el conjunto de validación
+    for col in ['yr', 'hr', 'holiday', 'workingday']:
+        if col in X_valid.columns:
+            X_valid[col] = X_valid[col].fillna(X_valid[col].median())
 
-# Calculamos e imprimimos RMSE y MAE en el conjunto de validación
-rmse_valid = np.sqrt(mean_squared_error(y_valid, yhat_valid))
-mae_valid = mean_absolute_error(y_valid, yhat_valid)
 
-print(f"RMSE on validation set: {rmse_valid:.2f}")
-print(f"MAE on validation set: {mae_valid:.2f}")
+    # Hacemos predicción en el conjunto de validación.
+    yhat_valid = grid_search.predict(X_valid)
 
-filename = f'{path_mlops}/models/modelo_LR.pickle'
-pickle.dump(grid_search.best_estimator_, open(filename, 'wb'))
+    # Calculamos e imprimimos RMSE y MAE en el conjunto de validación
+    rmse_valid = np.sqrt(mean_squared_error(y_valid, yhat_valid))
+    mae_valid = mean_absolute_error(y_valid, yhat_valid)
 
-# Guardamos el modelo entrenado usando pickle
-print(f"Modelo guardado en: {filename}")
+    print(f"RMSE on validation set: {rmse_valid:.2f}")
+    print(f"MAE on validation set: {mae_valid:.2f}")
+
+    # Log de métricas de validación
+    mlflow.log_metric("rmse_valid", rmse_valid)
+    mlflow.log_metric("mae_valid", mae_valid)
+
+    filename = f'{path_mlops}/models/modelo_LR.pickle'
+    pickle.dump(grid_search.best_estimator_, open(filename, 'wb'))
+
+    # Guardamos el modelo entrenado usando pickle
+    print(f"Modelo guardado en: {filename}")
 
 
