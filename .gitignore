@@ -6,3 +6,5 @@ __pycache__/
 .idea/
 .dvc/tmp/
 data/processed/*.csv
+.env
+mlruns/
