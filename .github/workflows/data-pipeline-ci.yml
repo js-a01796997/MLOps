@@ -1,0 +1,55 @@
+name: Data Pipeline CI
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-data-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
+
+    - name: Set up Python
+      run: uv python install 3.12
+
+    - name: Install dependencies
+      run: uv sync
+
+    - name: Check script syntax
+      run: |
+        uv run python -m py_compile src/data_cleaning.py
+        uv run python -m py_compile src/DataSplit.py
+        uv run python -m py_compile src/validate_data.py
+
+    - name: Run data preprocessing
+      run: uv run python src/data_cleaning.py
+
+    - name: Check preprocessing output exists
+      run: |
+        if [ ! -f "data/processed/bike_sharing_cleaned.csv" ]; then
+          echo "Cleaned data file not found"
+          exit 1
+        fi
+
+    - name: Run data split
+      run: uv run python src/DataSplit.py
+
+    - name: Check split output exists
+      run: |
+        for file in train.csv test.csv valid.csv; do
+          if [ ! -f "data/processed/$file" ]; then
+            echo "$file not found"
+            exit 1
+          fi
+        done
+
+    - name: Validate data integrity
+      run: uv run python src/validate_data.py
