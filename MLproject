@@ -1,0 +1,36 @@
+name: bike_sharing_mlops
+
+python_env: python_env.yaml
+
+entry_points:
+  # Data cleaning stage
+  preprocess:
+    parameters:
+      input_file: {type: string, default: "data/raw/bike_sharing_modified.csv"}
+      output_file: {type: string, default: "data/processed/bike_sharing_cleaned.csv"}
+    command: "python src/data_cleaning.py"
+
+  # Data splitting stage
+  split_data:
+    parameters:
+      input_file: {type: string, default: "data/processed/bike_sharing_cleaned.csv"}
+      output_dir: {type: string, default: "data/processed/"}
+    command: "python src/DataSplit.py"
+
+  # Model training stage
+  train:
+    parameters:
+      config: {type: string, default: "config/models_config.yaml"}
+    command: "python src/train_models.py {config}"
+
+  # Model registry stage
+  register:
+    parameters:
+      config: {type: string, default: "config/models_config.yaml"}
+    command: "python src/model_registry.py --config {config} --auto-promote"
+
+  # Full pipeline
+  main:
+    parameters:
+      config: {type: string, default: "config/models_config.yaml"}
+    command: "python src/run_pipeline.py --config {config}"
