@@ -52,20 +52,41 @@ for c in float_cols:
 print(f"La nueva información del DataFrame: \n\n {df.info()}")
 
 df_new = df.drop(['instant','casual','registered','dteday'], axis=1)
-print("\nSe eliminaron las columnas instant, casual, registered y dteday por ser redundantes para el modelo")
+print("Se eliminaron las columnas instant, casual, registered y dteday por ser redundantes para el modelo")
 #Convertimos a números a las variables categóricas
 df_new = pd.get_dummies(df_new, drop_first=True)
-#Reescalaremos las variables
-scaler = MinMaxScaler()
-df_new[['temp', 'atemp', 'hum', 'windspeed','cnt']] = scaler.fit_transform(df_new[['temp', 'atemp', 'hum', 'windspeed','cnt']])
-print("\nSe escalaron las variables temp, atemp, hum, windspeed y cnt")
-# SEPARACIÓN DE LOS DATOS
+#Separación de los datos en train, validation y test
 df_train, df_vt = train_test_split(df_new, train_size = 0.70, test_size = 0.30, random_state = 333)
 df_valid, df_test = train_test_split(df_vt, train_size = 0.50, test_size = 0.50, random_state = 333)
 
 print(f"\nEl tamaño del set de entrenamiento es: {df_train.shape}")
 print(f"\nEl tamaño del set de validación es: {df_valid.shape}")
 print(f"\nEl tamaño del set de prueba es: {df_test.shape}")
+
+#Reescalaremos las variables del conjunto de entrenamiento
+scaler = MinMaxScaler()
+df_train[['temp', 'atemp', 'hum', 'windspeed','cnt']] = scaler.fit_transform(df_train[['temp', 'atemp', 'hum', 'windspeed','cnt']])
+print("Se escalaron las variables temp, atemp, hum, windspeed y cnt")
+cols_to_scale = ['temp', 'atemp', 'hum', 'windspeed', 'cnt']
+
+# Asegurar que las columnas de validación y test sean float antes de asignar los valores escalados
+for df_ in (df_valid, df_test):
+    for c in cols_to_scale:
+        if c in df_.columns:
+            df_.loc[:, c] = df_[c].astype("float64")
+
+df_valid.loc[:, cols_to_scale] = scaler.transform(df_valid[cols_to_scale])
+df_test.loc[:, cols_to_scale]  = scaler.transform(df_test[cols_to_scale])
+
+print("Se escalaron las variables temp, atemp, hum, windspeed y cnt en validación y test.")
+
+import pickle
+
+scaler_path = "models/minmax_scaler.pickle"
+with open(scaler_path, "wb") as f:
+    pickle.dump(scaler, f)
+
+print(f"Scaler guardado en: {scaler_path}")
 
 #Guardamos los datos
 train_path = path_mlops/'data'/'processed'/'train.csv'

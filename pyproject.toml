@@ -8,6 +8,10 @@ dependencies = [
     "dvc[s3]>=3.63.0",
     "numpy>=2.3.3",
     "pandas>=2.3.3",
+    "pip>=25.3",
     "scipy>=1.16.2",
     "seaborn>=0.13.2",
+    "scikit-learn",
+    "ipykernel>=7.1.0",
+    "xgboost>=3.1.1",
 ]
