@@ -480,6 +480,7 @@ print('\n18. Se convirtieron columnas enteras')
 
 print("\n19. Información del DataFrame después de la limpieza:\n")
 print(bike_sharing.info())
+
 #Se guarda el DataFrame limpio en un nuevo archivo CSV
 output_file_path = path_mlops/'data'/'processed'/'bike_sharing_cleaned.csv'
 bike_sharing.to_csv(output_file_path, index=False)

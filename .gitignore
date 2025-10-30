@@ -1,10 +1,133 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
 .venv/
+venv/
+ENV/
+env/
+.virtualenv
+
+# Jupyter Notebook
 .ipynb_checkpoints/
+*.ipynb_checkpoints
+*/.ipynb_checkpoints/*
+profile_default/
+ipython_config.py
+
+# IDEs
 .vscode/
 .idea/
-.dvc/tmp/
-data/processed/*.csv
-.env
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+
+# MLflow
 mlruns/
+mlartifacts/
+mlflow.db
+
+# Models (tracked by DVC)
+models/*.pickle
+models/*.pkl
+models/*.h5
+models/*.pt
+models/*.pth
+models/*.joblib
+models/*.model
+models/*.onnx
+
+# Keep model comparison CSV
+!models/model_comparison.csv
+
+# DVC
+.dvc/tmp/
+.dvc/cache/
+
+# Data (tracked by DVC)
+data/raw/*.csv
+data/raw/*.zip
+data/processed/*.csv
+data/interim/*.csv
+
+# Keep .dvc files for tracking
+!*.dvc
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# OS specific
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.swp
+*~.nib
+temp/
+tmp/
+
+# Coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Documentation builds
+docs/_build/
+site/
+
+# UV package manager
+uv.lock
+
+# PyCharm
+.idea/
+
+# Config backups
+config/*.bak
+config/temp_*.yaml
