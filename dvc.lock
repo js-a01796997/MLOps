@@ -215,3 +215,14 @@ stages:
       hash: md5
       md5: e2c1b8ff7d34537bb1bb99aefdee50ff
       size: 1095
+  test:
+    cmd: uv run pytest tests/ -v
+    deps:
+    - path: src/data_cleaning.py
+      hash: md5
+      md5: e83c4aaddea6d87dcc4df7a8bffd8e0b
+      size: 18961
+    - path: tests/test_data_cleaning.py
+      hash: md5
+      md5: 9e2b10bd33b61fa8ba61f78657d51b95
+      size: 3505

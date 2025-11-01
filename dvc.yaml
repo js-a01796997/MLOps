@@ -37,3 +37,9 @@ stages:
     metrics:
       - models/model_comparison.csv:
           cache: false
+
+  test:
+    cmd: uv run pytest tests/ -v
+    deps:
+      - tests/test_data_cleaning.py
+      - src/data_cleaning.py
