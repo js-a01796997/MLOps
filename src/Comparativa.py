@@ -1,59 +1,161 @@
+"""
+Model Comparison Script
+
+Evaluates and compares multiple trained models on the test set.
+Logs metrics to MLflow for tracking.
+"""
+
 import pickle
 from pathlib import Path
+from typing import Dict, Any, Tuple
 import pandas as pd
 import numpy as np
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import mlflow
 import mlflow.sklearn
-import os
-from dotenv import load_dotenv
 
-#Se obtiene el directorio actual del script
-directorio_actual = Path(__file__).parent
-#Se obtiene la ruta al directorio mlops
-path_mlops = directorio_actual.parent
-#ruta a los datos de prueba
-path_test = f'{path_mlops}/data/processed/test.csv'
-df_test = pd.read_csv(path_test)
+from utils.paths import get_project_root, get_data_path, get_models_path
 
-# Carga variables de entorno desde .env (si existe) y establece el tracking URI
-load_dotenv()
-if os.getenv("MLFLOW_TRACKING_URI"):
-    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 
-mlflow.set_experiment("bs_evaluation")
+def load_models(models_dir: Path) -> Dict[str, Any]:
+    """
+    Load trained models from pickle files.
 
-# Cargamos los modelos previamente entrenados
-lr = pickle.load(open(f'{path_mlops}/models/modelo_LR.pickle', 'rb'))
-lasso = pickle.load(open(f'{path_mlops}/models/modelo_lasso.pickle', 'rb'))
-ridge = pickle.load(open(f'{path_mlops}/models/modelo_ridge.pickle', 'rb'))
+    Args:
+        models_dir: Path to the models directory
 
-y_test = df_test['cnt']
-X_test = df_test.drop('cnt', axis=1)
+    Returns:
+        Dictionary mapping model names to model objects
+    """
+    models = {}
+    model_files = {
+        'LinearRegression': 'modelo_LR.pickle',
+        'Lasso': 'modelo_lasso.pickle',
+        'Ridge': 'modelo_ridge.pickle'
+    }
 
-#Imputamos valores faltantes en el conjunto de prueba
-for col in ['yr', 'hr', 'holiday', 'workingday']:
-    if col in X_test.columns:
-        X_test[col] = X_test[col].fillna(X_test[col].median())
+    for name, filename in model_files.items():
+        model_path = models_dir / filename
+        if not model_path.exists():
+            raise FileNotFoundError(f"Model file not found: {model_path}")
+        
+        with open(model_path, 'rb') as f:
+            models[name] = pickle.load(f)
+    
+    return models
 
-# Guardamos los modelos en un diccionario para facilitar la comparación
-models = {
-    'LinearRegression': lr, 
-    'Lasso': lasso,
-    'Ridge': ridge
-}
 
-results = {}
-with mlflow.start_run(run_name="compare_on_test", tags={"stage": "test"}):
-    for name, model in models.items():
-        with mlflow.start_run(run_name=f"test_{name}", nested=True, tags={"model": name}):
-            y_pred = model.predict(X_test)
-            rmse = np.sqrt(mean_squared_error(y_test, y_pred))
-            mae = mean_absolute_error(y_test, y_pred)
-            mlflow.log_metric("rmse_test", rmse)
-            mlflow.log_metric("mae_test", mae)
-            results[name] = {'RMSE': rmse, 'MAE': mae}
+def load_test_data(test_path: Path) -> Tuple[pd.DataFrame, pd.Series]:
+    """
+    Load and prepare test data.
 
-    # Convertimos los resultados a un DataFrame para una mejor visualización
-    results_df = pd.DataFrame(results).T
-    print(results_df)
+    Args:
+        test_path: Path to the test CSV file
+
+    Returns:
+        Tuple of (X_test, y_test) DataFrames
+    """
+    if not test_path.exists():
+        raise FileNotFoundError(f"Test data file not found: {test_path}")
+    
+    df_test = pd.read_csv(test_path)
+    y_test = df_test['cnt']
+    X_test = df_test.drop('cnt', axis=1)
+
+    # Impute missing values with median
+    for col in ['yr', 'hr', 'holiday', 'workingday']:
+        if col in X_test.columns:
+            X_test[col] = X_test[col].fillna(X_test[col].median())
+
+    return X_test, y_test
+
+
+def evaluate_model(model: Any, X_test: pd.DataFrame, y_test: pd.Series) -> Dict[str, float]:
+    """
+    Evaluate a single model on test data.
+
+    Args:
+        model: Trained model with predict() method
+        X_test: Test features
+        y_test: Test target values
+
+    Returns:
+        Dictionary with RMSE and MAE metrics
+    """
+    y_pred = model.predict(X_test)
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+    mae = mean_absolute_error(y_test, y_pred)
+    
+    return {'RMSE': rmse, 'MAE': mae}
+
+
+def compare_models(
+    models: Dict[str, Any],
+    X_test: pd.DataFrame,
+    y_test: pd.Series,
+    experiment_name: str = "bs_evaluation"
+) -> pd.DataFrame:
+    """
+    Compare multiple models on test data and log to MLflow.
+
+    Args:
+        models: Dictionary mapping model names to model objects
+        X_test: Test features
+        y_test: Test target values
+        experiment_name: MLflow experiment name
+
+    Returns:
+        DataFrame with comparison results
+    """
+    # Setup MLflow
+    mlflow.set_experiment(experiment_name)
+    
+    results = {}
+    
+    with mlflow.start_run(run_name="compare_on_test", tags={"stage": "test"}):
+        for name, model in models.items():
+            with mlflow.start_run(run_name=f"test_{name}", nested=True, tags={"model": name}):
+                metrics = evaluate_model(model, X_test, y_test)
+                
+                # Log metrics to MLflow
+                mlflow.log_metric("rmse_test", metrics['RMSE'])
+                mlflow.log_metric("mae_test", metrics['MAE'])
+                
+                results[name] = metrics
+
+        # Convert results to DataFrame for better visualization
+        results_df = pd.DataFrame(results).T
+        print("\n" + "="*80)
+        print("MODEL COMPARISON RESULTS (Test Set)")
+        print("="*80)
+        print(results_df)
+        print("="*80 + "\n")
+        
+        return results_df
+
+
+def main():
+    """Main function to run model comparison."""
+    # Get paths using utils
+    project_root = get_project_root()
+    models_dir = get_models_path()
+    test_path = get_data_path("processed") / "test.csv"
+
+    # Load models and test data
+    print("Loading models...")
+    models = load_models(models_dir)
+    print(f"Loaded {len(models)} models: {list(models.keys())}")
+
+    print("Loading test data...")
+    X_test, y_test = load_test_data(test_path)
+    print(f"Test set shape: {X_test.shape}")
+
+    # Compare models
+    print("Evaluating models on test set...")
+    results_df = compare_models(models, X_test, y_test)
+    
+    return results_df
+
+
+if __name__ == "__main__":
+    main()
