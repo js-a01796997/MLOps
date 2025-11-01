@@ -62,8 +62,7 @@ models/*.joblib
 models/*.model
 models/*.onnx
 
-# Keep model comparison CSV
-!models/model_comparison.csv
+models/model_comparison.csv
 
 # DVC
 .dvc/tmp/
