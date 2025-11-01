@@ -224,5 +224,5 @@ stages:
       size: 18961
     - path: tests/test_data_cleaning.py
       hash: md5
-      md5: 9e2b10bd33b61fa8ba61f78657d51b95
-      size: 3505
+      md5: f78ea69cb97eb1da37be58071296d356
+      size: 8028
