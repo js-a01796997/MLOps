@@ -32,10 +32,25 @@ def load_config(config_path: str = "config/models_config.yaml") -> Dict[str, Any
         config_file = project_root / config_path
     
     if not config_file.exists():
-        raise FileNotFoundError(f"Configuration file not found: {config_file}")
+        raise FileNotFoundError(
+            f"Configuration file not found: {config_file}\n"
+            f"Expected location: {config_file.absolute()}"
+        )
     
-    with open(config_file, 'r') as f:
-        config = yaml.safe_load(f)
+    try:
+        with open(config_file, 'r', encoding='utf-8') as f:
+            config = yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        raise yaml.YAMLError(
+            f"Error parsing YAML file {config_file}: {str(e)}"
+        ) from e
+    except Exception as e:
+        raise IOError(
+            f"Error reading configuration file {config_file}: {str(e)}"
+        ) from e
+    
+    if config is None:
+        raise ValueError(f"Configuration file {config_file} is empty or contains no valid YAML")
     
     return config
 

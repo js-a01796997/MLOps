@@ -214,6 +214,11 @@ def main(input_path: Path = None, output_dir: Path = None) -> Tuple[pd.DataFrame
 
     Returns:
         Tuple of (train_df, valid_df, test_df)
+
+    Raises:
+        FileNotFoundError: If input file doesn't exist
+        pd.errors.EmptyDataError: If input file is empty
+        ValueError: If DataFrame is empty or split sizes are invalid
     """
     # Get paths using utils
     if input_path is None:
@@ -222,9 +227,25 @@ def main(input_path: Path = None, output_dir: Path = None) -> Tuple[pd.DataFrame
     if output_dir is None:
         output_dir = get_data_path("processed")
 
+    # Validate input path
+    if not input_path.exists():
+        raise FileNotFoundError(
+            f"Input file not found: {input_path}\n"
+            f"Please ensure the cleaned data file exists or provide a valid input_path."
+        )
+
     # Load data
     print(f"Loading data from: {input_path}")
-    df = pd.read_csv(input_path)
+    try:
+        df = pd.read_csv(input_path)
+    except pd.errors.EmptyDataError:
+        raise pd.errors.EmptyDataError(f"Input file {input_path} is empty")
+    except Exception as e:
+        raise IOError(f"Error reading input file {input_path}: {str(e)}") from e
+
+    if df.empty:
+        raise ValueError(f"Input file {input_path} contains no data")
+
     print(f"La info del DataFrame: \n\n {df.info()}")
 
     # Convert column types
@@ -239,6 +260,13 @@ def main(input_path: Path = None, output_dir: Path = None) -> Tuple[pd.DataFrame
     # Save scaler
     save_scaler(scaler)
 
+    # Validate splits
+    if df_train.empty or df_valid.empty or df_test.empty:
+        raise ValueError(
+            "One or more data splits are empty. "
+            "Check that input data has enough rows for splitting."
+        )
+
     # Save splits
     save_splits(df_train, df_valid, df_test, output_dir)
 
@@ -246,4 +274,13 @@ def main(input_path: Path = None, output_dir: Path = None) -> Tuple[pd.DataFrame
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (FileNotFoundError, ValueError, IOError) as e:
+        print(f"\n❌ Error: {e}")
+        exit(1)
+    except Exception as e:
+        print(f"\n❌ Unexpected error: {e}")
+        import traceback
+        traceback.print_exc()
+        exit(1)

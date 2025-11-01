@@ -135,27 +135,74 @@ def compare_models(
 
 
 def main():
-    """Main function to run model comparison."""
+    """
+    Main function to run model comparison.
+
+    Raises:
+        FileNotFoundError: If models or test data files don't exist
+        ValueError: If no models are loaded or test data is empty
+    """
     # Get paths using utils
     project_root = get_project_root()
     models_dir = get_models_path()
     test_path = get_data_path("processed") / "test.csv"
 
+    # Validate paths
+    if not models_dir.exists():
+        raise FileNotFoundError(f"Models directory not found: {models_dir}")
+    if not test_path.exists():
+        raise FileNotFoundError(
+            f"Test data file not found: {test_path}\n"
+            f"Please ensure test.csv exists in data/processed/"
+        )
+
     # Load models and test data
     print("Loading models...")
-    models = load_models(models_dir)
+    try:
+        models = load_models(models_dir)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(
+            f"Error loading models: {e}\n"
+            f"Please ensure model pickle files exist in {models_dir}"
+        ) from e
+
+    if not models:
+        raise ValueError(f"No models found in {models_dir}")
+
     print(f"Loaded {len(models)} models: {list(models.keys())}")
 
     print("Loading test data...")
-    X_test, y_test = load_test_data(test_path)
+    try:
+        X_test, y_test = load_test_data(test_path)
+    except FileNotFoundError as e:
+        raise FileNotFoundError(
+            f"Error loading test data: {e}\n"
+            f"Please ensure test.csv exists and is valid"
+        ) from e
+
+    if X_test.empty or y_test.empty:
+        raise ValueError(f"Test data is empty in {test_path}")
+
     print(f"Test set shape: {X_test.shape}")
 
     # Compare models
     print("Evaluating models on test set...")
-    results_df = compare_models(models, X_test, y_test)
+    try:
+        results_df = compare_models(models, X_test, y_test)
+    except Exception as e:
+        raise RuntimeError(f"Error during model comparison: {str(e)}") from e
     
     return results_df
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (FileNotFoundError, ValueError, RuntimeError) as e:
+        print(f"\n❌ Error: {e}")
+        exit(1)
+    except Exception as e:
+        print(f"\n❌ Unexpected error: {e}")
+        import traceback
+        traceback.print_exc()
+        exit(1)

@@ -424,6 +424,11 @@ def main(input_path: Path = None, output_path: Path = None) -> pd.DataFrame:
 
     Returns:
         Cleaned DataFrame
+
+    Raises:
+        FileNotFoundError: If input file doesn't exist
+        pd.errors.EmptyDataError: If input file is empty
+        ValueError: If DataFrame is empty after cleaning
     """
     # Get paths
     if input_path is None:
@@ -431,9 +436,24 @@ def main(input_path: Path = None, output_path: Path = None) -> pd.DataFrame:
     if output_path is None:
         output_path = get_data_path("processed") / "bike_sharing_cleaned.csv"
 
+    # Validate input path
+    if not input_path.exists():
+        raise FileNotFoundError(
+            f"Input file not found: {input_path}\n"
+            f"Please ensure the file exists or provide a valid input_path."
+        )
+
     # Load data
     print(f"Loading data from: {input_path}")
-    bike_sharing = pd.read_csv(input_path)
+    try:
+        bike_sharing = pd.read_csv(input_path)
+    except pd.errors.EmptyDataError:
+        raise pd.errors.EmptyDataError(f"Input file {input_path} is empty")
+    except Exception as e:
+        raise IOError(f"Error reading input file {input_path}: {str(e)}") from e
+
+    if bike_sharing.empty:
+        raise ValueError(f"Input file {input_path} contains no data")
 
     # Run cleaning pipeline
     bike_sharing = load_and_convert_types(bike_sharing)
@@ -463,13 +483,29 @@ def main(input_path: Path = None, output_path: Path = None) -> pd.DataFrame:
     print("\n19. Información del DataFrame después de la limpieza:\n")
     print(bike_sharing.info())
 
+    # Validate cleaned data
+    if bike_sharing.empty:
+        raise ValueError("DataFrame is empty after cleaning. Check input data and cleaning steps.")
+
     # Save cleaned data
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    bike_sharing.to_csv(output_path, index=False)
-    print(f"\n20. El DataFrame limpio se ha guardado en: {output_path}\n")
+    try:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        bike_sharing.to_csv(output_path, index=False)
+        print(f"\n20. El DataFrame limpio se ha guardado en: {output_path}\n")
+    except Exception as e:
+        raise IOError(f"Error saving cleaned data to {output_path}: {str(e)}") from e
 
     return bike_sharing
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except (FileNotFoundError, ValueError, IOError) as e:
+        print(f"\n❌ Error: {e}")
+        exit(1)
+    except Exception as e:
+        print(f"\n❌ Unexpected error: {e}")
+        import traceback
+        traceback.print_exc()
+        exit(1)
