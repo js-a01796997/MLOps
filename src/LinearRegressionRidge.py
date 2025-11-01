@@ -1,3 +1,27 @@
+"""
+DEPRECATED: This script is deprecated and will be removed in a future version.
+
+This script has been replaced by the unified training script `train_models.py` which:
+- Supports multiple models from configuration
+- Has better error handling
+- Uses centralized utilities (utils/)
+- Provides more comprehensive metrics
+- Supports both GridSearchCV and RandomizedSearchCV
+
+Please use `train_models.py` instead:
+    python src/train_models.py config/models_config.yaml
+
+To enable Ridge regression in train_models.py, ensure 'ridge_regression' is enabled in the config file.
+"""
+
+import warnings
+warnings.warn(
+    "LinearRegressionRidge.py is deprecated. Use train_models.py instead. "
+    "See the module docstring for details.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import GridSearchCV
