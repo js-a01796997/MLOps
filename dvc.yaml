@@ -8,9 +8,9 @@ stages:
       - data/processed/bike_sharing_cleaned.csv
 
   split_data:
-    cmd: python3 src/DataSplit.py
+    cmd: python3 src/data_split.py
     deps:
-      - src/DataSplit.py
+      - src/data_split.py
       - data/processed/bike_sharing_cleaned.csv
     outs:
       - data/processed/test.csv

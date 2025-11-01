@@ -6,20 +6,10 @@ Promotes models through stages: None -> Staging -> Production
 import mlflow
 from mlflow.tracking import MlflowClient
 import pandas as pd
-import yaml
 from typing import Optional, Dict, List
 
-
-def load_config(config_path: str = "config/models_config.yaml") -> Dict:
-    """Load configuration"""
-    with open(config_path, 'r') as f:
-        return yaml.safe_load(f)
-
-
-def setup_mlflow(config: Dict):
-    """Setup MLflow tracking"""
-    mlflow.set_tracking_uri(config['mlflow']['tracking_uri'])
-    mlflow.set_experiment(config['mlflow']['experiment_name'])
+from utils.config import load_config
+from utils.mlflow_setup import setup_mlflow
 
 
 def get_best_run(experiment_name: str, metric: str = "test_rmse") -> Optional[Dict]:

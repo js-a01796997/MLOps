@@ -103,7 +103,7 @@ def main():
             sys.exit(1)
 
         run_command(
-            ["python", "src/DataSplit.py"],
+            ["python", "src/data_split.py"],
             "Data splitting and preprocessing"
         )
 

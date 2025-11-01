@@ -15,7 +15,7 @@ entry_points:
     parameters:
       input_file: {type: string, default: "data/processed/bike_sharing_cleaned.csv"}
       output_dir: {type: string, default: "data/processed/"}
-    command: "python src/DataSplit.py"
+    command: "python src/data_split.py"
 
   # Model training stage
   train:

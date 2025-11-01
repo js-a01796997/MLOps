@@ -4,7 +4,6 @@ Trains multiple scikit-learn models with experiment tracking and model registry
 """
 
 import os
-import yaml
 import importlib
 import pickle
 from pathlib import Path
@@ -19,12 +18,8 @@ import mlflow.sklearn
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 
-
-def load_config(config_path: str = "config/models_config.yaml") -> Dict[str, Any]:
-    """Load configuration from YAML file"""
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-    return config
+from utils.config import load_config
+from utils.mlflow_setup import setup_mlflow
 
 
 def load_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -221,9 +216,8 @@ def train_all_models(config_path: str = "config/models_config.yaml"):
     # Load configuration
     config = load_config(config_path)
 
-    # Setup MLflow
-    mlflow.set_tracking_uri(config['mlflow']['tracking_uri'])
-    mlflow.set_experiment(config['mlflow']['experiment_name'])
+    # Setup MLflow using centralized utility
+    setup_mlflow(config)
 
     print(f"MLflow Tracking URI: {mlflow.get_tracking_uri()}")
     print(f"Experiment: {config['mlflow']['experiment_name']}")
