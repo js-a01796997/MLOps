@@ -4,7 +4,7 @@
 # MLflow settings
 mlflow:
   experiment_name: "bike_sharing_demand"
-  tracking_uri: "file:./mlruns"  # Local tracking, can change to remote server
+  tracking_uri: "https://mlflow.labs.jsdevart.com/"  # Remote MLflow tracking server
 
 # Data paths
 data:

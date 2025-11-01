@@ -37,3 +37,46 @@ Este comando:
 
 ## Etapas
 - `preprocess`: esta etapa esta a cargo de leer los datos y limpiarlos
+
+## MLflow Configuration
+
+Este proyecto usa MLflow para el tracking de experimentos. La configuración se encuentra en `config/models_config.yaml`.
+
+### Servidor MLflow Remoto
+
+El proyecto está configurado para usar el servidor MLflow remoto en: **https://mlflow.labs.jsdevart.com/**
+
+### Verificar Conexión
+
+Antes de entrenar modelos, puedes verificar la conexión con MLflow ejecutando:
+
+```bash
+uv run python test_mlflow_connection.py
+```
+
+Este script:
+- Verifica que la configuración de MLflow sea correcta
+- Prueba la conexión con el servidor remoto
+- Crea un experimento de prueba
+- Muestra información útil para debugging
+
+### Autenticación (si es necesario)
+
+Si el servidor MLflow requiere autenticación, configura las variables de entorno:
+
+```bash
+export MLFLOW_TRACKING_USERNAME=tu_usuario
+export MLFLOW_TRACKING_PASSWORD=tu_contraseña
+```
+
+O crea un archivo `.env` en la raíz del proyecto:
+
+```
+MLFLOW_TRACKING_USERNAME=tu_usuario
+MLFLOW_TRACKING_PASSWORD=tu_contraseña
+```
+
+### Ver Experimentos
+
+Después de entrenar modelos, puedes ver los experimentos en:
+**https://mlflow.labs.jsdevart.com/**

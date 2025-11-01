@@ -45,8 +45,8 @@ stages:
     deps:
     - path: config/models_config.yaml
       hash: md5
-      md5: 5db79bd43c42adc1b75e68f4ec0d830f
-      size: 2657
+      md5: 48dae320f3bbe4da57648a943ac1d64a
+      size: 2663
     - path: data/processed/test.csv
       hash: md5
       md5: 298b7cea71f3ca26b2d618066507ab15
