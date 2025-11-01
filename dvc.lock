@@ -1,7 +1,7 @@
 schema: '2.0'
 stages:
   preprocess:
-    cmd: python3 src/data_cleaning.py
+    cmd: uv run src/data_cleaning.py
     deps:
     - path: data/raw/bike_sharing_modified.csv
       hash: md5
@@ -9,16 +9,209 @@ stages:
       size: 1686247
     - path: src/data_cleaning.py
       hash: md5
-      md5: 9bd8747275346c51679101dd14f2f52b
-      size: 19375
+      md5: e83c4aaddea6d87dcc4df7a8bffd8e0b
+      size: 18961
+    outs:
+    - path: data/processed/bike_sharing_cleaned.csv
+      hash: md5
+      md5: aba16c5849dd5c5680fe5c43d963c2ce
+      size: 1138549
   split_data:
-    cmd: python3 src/DataSplit.py
+    cmd: uv run src/data_split.py
     deps:
     - path: data/processed/bike_sharing_cleaned.csv
       hash: md5
-      md5: 85fe250e0bcda484c7d34374f4ab7ec2
+      md5: aba16c5849dd5c5680fe5c43d963c2ce
       size: 1138549
-    - path: src/DataSplit.py
+    - path: src/data_split.py
       hash: md5
-      md5: 311e1defb15cba3e7db295eed8a51c36
-      size: 3180
+      md5: 695f6f1abbc55a0bbe543fc5eee00c58
+      size: 8958
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 298b7cea71f3ca26b2d618066507ab15
+      size: 553376
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 41dfaf2a656981a32421d8491074d451
+      size: 2583727
+    - path: data/processed/valid.csv
+      hash: md5
+      md5: b0ac1f4d342bc896ce5b23f09528292d
+      size: 554010
+  train:
+    cmd: uv run src/train_models.py config/models_config.yaml
+    deps:
+    - path: config/models_config.yaml
+      hash: md5
+      md5: 5db79bd43c42adc1b75e68f4ec0d830f
+      size: 2657
+    - path: data/processed/test.csv
+      hash: md5
+      md5: 298b7cea71f3ca26b2d618066507ab15
+      size: 553376
+    - path: data/processed/train.csv
+      hash: md5
+      md5: 41dfaf2a656981a32421d8491074d451
+      size: 2583727
+    - path: data/processed/valid.csv
+      hash: md5
+      md5: b0ac1f4d342bc896ce5b23f09528292d
+      size: 554010
+    - path: src/train_models.py
+      hash: md5
+      md5: 12195725ba8989fd2ad214b7d34eb83e
+      size: 11580
+    params:
+      config/models_config.yaml:
+        mlflow.experiment_name: bike_sharing_demand
+        models:
+          linear_regression:
+            enabled: true
+            class: LinearRegression
+            module: sklearn.linear_model
+            search_method: grid
+            param_grid:
+              fit_intercept:
+              - true
+              - false
+              copy_X:
+              - true
+            cv_folds: 5
+          ridge_regression:
+            enabled: true
+            class: Ridge
+            module: sklearn.linear_model
+            search_method: random
+            n_iter: 20
+            param_grid:
+              alpha:
+              - 0.001
+              - 0.01
+              - 0.1
+              - 1.0
+              - 10.0
+              - 100.0
+              - 1000.0
+              fit_intercept:
+              - true
+              - false
+              max_iter:
+              - 1000
+              - 5000
+              - 10000
+            cv_folds: 5
+          lasso_regression:
+            enabled: true
+            class: Lasso
+            module: sklearn.linear_model
+            search_method: random
+            n_iter: 20
+            param_grid:
+              alpha:
+              - 0.001
+              - 0.01
+              - 0.1
+              - 1.0
+              - 10.0
+              - 100.0
+              - 1000.0
+              fit_intercept:
+              - true
+              - false
+              max_iter:
+              - 1000
+              - 5000
+              - 10000
+            cv_folds: 5
+          elasticnet:
+            enabled: true
+            class: ElasticNet
+            module: sklearn.linear_model
+            search_method: random
+            n_iter: 30
+            param_grid:
+              alpha:
+              - 0.001
+              - 0.01
+              - 0.1
+              - 1.0
+              - 10.0
+              l1_ratio:
+              - 0.1
+              - 0.3
+              - 0.5
+              - 0.7
+              - 0.9
+              fit_intercept:
+              - true
+              - false
+              max_iter:
+              - 1000
+              - 5000
+            cv_folds: 5
+          random_forest:
+            enabled: false
+            class: RandomForestRegressor
+            module: sklearn.ensemble
+            param_grid:
+              n_estimators:
+              - 50
+              - 100
+              - 200
+              max_depth:
+              - 10
+              - 20
+              - 30
+              - 
+              min_samples_split:
+              - 2
+              - 5
+              - 10
+              min_samples_leaf:
+              - 1
+              - 2
+              - 4
+            cv_folds: 3
+          gradient_boosting:
+            enabled: false
+            class: GradientBoostingRegressor
+            module: sklearn.ensemble
+            param_grid:
+              n_estimators:
+              - 100
+              - 200
+              learning_rate:
+              - 0.01
+              - 0.1
+              - 0.2
+              max_depth:
+              - 3
+              - 5
+              - 7
+              subsample:
+              - 0.8
+              - 1.0
+            cv_folds: 3
+    outs:
+    - path: models/model_comparison.csv
+      hash: md5
+      md5: 3f74e7cd3f29e5d1ba5f9661488eb9cc
+      size: 865
+    - path: models/modelo_elasticnet.pickle
+      hash: md5
+      md5: 1915b54d2d510387385f2b7cc43ca5e4
+      size: 1177
+    - path: models/modelo_lasso_regression.pickle
+      hash: md5
+      md5: 8798c2b7adf3f627f5c3bfd478c51fea
+      size: 1162
+    - path: models/modelo_linear_regression.pickle
+      hash: md5
+      md5: fa09311672d1b399d2c21926604b6f4c
+      size: 1320
+    - path: models/modelo_ridge_regression.pickle
+      hash: md5
+      md5: e2c1b8ff7d34537bb1bb99aefdee50ff
+      size: 1095

@@ -1,6 +1,6 @@
 stages:
   preprocess:
-    cmd: python3 src/data_cleaning.py
+    cmd: uv run src/data_cleaning.py
     deps:
       - src/data_cleaning.py
       - data/raw/bike_sharing_modified.csv
@@ -8,7 +8,7 @@ stages:
       - data/processed/bike_sharing_cleaned.csv
 
   split_data:
-    cmd: python3 src/data_split.py
+    cmd: uv run src/data_split.py
     deps:
       - src/data_split.py
       - data/processed/bike_sharing_cleaned.csv
@@ -18,7 +18,7 @@ stages:
       - data/processed/valid.csv
 
   train:
-    cmd: python3 src/train_models.py config/models_config.yaml
+    cmd: uv run src/train_models.py config/models_config.yaml
     deps:
       - src/train_models.py
       - config/models_config.yaml
@@ -26,7 +26,7 @@ stages:
       - data/processed/valid.csv
       - data/processed/test.csv
     params:
-      - models_config.yaml:
+      - config/models_config.yaml:
           - models
           - mlflow.experiment_name
     outs:
@@ -34,7 +34,6 @@ stages:
       - models/modelo_ridge_regression.pickle
       - models/modelo_lasso_regression.pickle
       - models/modelo_elasticnet.pickle
-      - models/model_comparison.csv
     metrics:
       - models/model_comparison.csv:
           cache: false
