@@ -130,4 +130,4 @@ uv.lock
 
 # Config backups
 config/*.bak
-config/temp_*.yaml
+config/temp_*.yamlREFACTORING_PLAN.md

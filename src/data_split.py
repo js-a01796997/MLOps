@@ -25,7 +25,7 @@ def convert_column_types(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with converted types
     """
-    print("Se cambiará el tipo de dato de las columnas season, mnth, weekday y weathersit a categóricas.")
+    print("Converting columns season, mnth, weekday and weathersit to categorical type.")
 
     cat_cols = ["season", "mnth", "weekday", "weathersit"]
     int_cols = ["yr", "holiday", "workingday", "cnt", "registered", "casual", "instant", "mixed_type_col"]
@@ -63,7 +63,7 @@ def convert_column_types(df: pd.DataFrame) -> pd.DataFrame:
         if c in df.columns:
             df[c] = df[c].astype("float64")
 
-    print(f"La nueva información del DataFrame: \n\n {df.info()}")
+    print(f"Updated DataFrame information: \n\n {df.info()}")
     return df
 
 
@@ -89,7 +89,7 @@ def split_data(
     """
     # Drop redundant columns
     df_new = df.drop(['instant', 'casual', 'registered', 'dteday'], axis=1)
-    print("Se eliminaron las columnas instant, casual, registered y dteday por ser redundantes para el modelo")
+    print("Removed columns instant, casual, registered and dteday as they are redundant for the model")
 
     # Convert categorical variables to dummy variables
     df_new = pd.get_dummies(df_new, drop_first=True)
@@ -108,9 +108,9 @@ def split_data(
         random_state=random_state
     )
 
-    print(f"\nEl tamaño del set de entrenamiento es: {df_train.shape}")
-    print(f"\nEl tamaño del set de validación es: {df_valid.shape}")
-    print(f"\nEl tamaño del set de prueba es: {df_test.shape}")
+    print(f"\nTraining set size: {df_train.shape}")
+    print(f"\nValidation set size: {df_valid.shape}")
+    print(f"\nTest set size: {df_test.shape}")
 
     return df_train, df_valid, df_test
 
@@ -139,7 +139,7 @@ def scale_features(
     # Fit scaler on training data
     scaler = MinMaxScaler()
     df_train.loc[:, cols_to_scale] = scaler.fit_transform(df_train[cols_to_scale])
-    print("Se escalaron las variables temp, atemp, hum, windspeed y cnt")
+    print("Scaled variables temp, atemp, hum, windspeed and cnt")
 
     # Ensure columns are float before scaling
     for df_ in (df_valid, df_test):
@@ -151,7 +151,7 @@ def scale_features(
     df_valid.loc[:, cols_to_scale] = scaler.transform(df_valid[cols_to_scale])
     df_test.loc[:, cols_to_scale] = scaler.transform(df_test[cols_to_scale])
 
-    print("Se escalaron las variables temp, atemp, hum, windspeed y cnt en validación y test.")
+    print("Scaled variables temp, atemp, hum, windspeed and cnt in validation and test sets.")
     return df_train, df_valid, df_test, scaler
 
 
@@ -170,7 +170,7 @@ def save_scaler(scaler: MinMaxScaler, scaler_path: Path = None) -> None:
     with open(scaler_path, "wb") as f:
         pickle.dump(scaler, f)
 
-    print(f"Scaler guardado en: {scaler_path}")
+    print(f"Scaler saved to: {scaler_path}")
 
 
 def save_splits(
@@ -201,7 +201,7 @@ def save_splits(
     df_valid.to_csv(valid_path, index=False)
     df_test.to_csv(test_path, index=False)
 
-    print("\nSe guardaron los datasets en la carpeta data/processed")
+    print("\nDatasets saved to data/processed directory")
 
 
 def main(input_path: Path = None, output_dir: Path = None) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -246,7 +246,7 @@ def main(input_path: Path = None, output_dir: Path = None) -> Tuple[pd.DataFrame
     if df.empty:
         raise ValueError(f"Input file {input_path} contains no data")
 
-    print(f"La info del DataFrame: \n\n {df.info()}")
+    print(f"DataFrame information: \n\n {df.info()}")
 
     # Convert column types
     df = convert_column_types(df)

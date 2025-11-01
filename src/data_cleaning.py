@@ -23,7 +23,7 @@ def load_and_convert_types(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         DataFrame with converted types
     """
-    print("\n1. Información del DataFrame antes de la limpieza:\n")
+    print("\n1. DataFrame information before cleaning:\n")
     print(df.info())
 
     # Column definitions
@@ -39,7 +39,7 @@ def load_and_convert_types(df: pd.DataFrame) -> pd.DataFrame:
         all_non_numeric_values.extend(non_numeric_values)
 
     all_non_numeric_values = list(set(all_non_numeric_values))
-    print(f'\n2. En las columnas: {cols}, \nse encontraron los valores no numéricos: {all_non_numeric_values}')
+    print(f'\n2. Non-numeric values found in columns {cols}: {all_non_numeric_values}')
 
     # Replace non-numeric values with NaN
     for col in cols:
@@ -51,7 +51,7 @@ def load_and_convert_types(df: pd.DataFrame) -> pd.DataFrame:
 
     # Convert date column
     df['dteday'] = pd.to_datetime(df['dteday'].str.strip(), format='%Y-%m-%d', errors='coerce')
-    print("\n3. Se convirtió la columna 'dteday' a tipo fecha.")
+    print("\n3. Converted column 'dteday' to date type.")
 
     return df
 
@@ -67,7 +67,7 @@ def clean_season(df: pd.DataFrame) -> pd.DataFrame:
             if not valid_season_rows.empty:
                 df.loc[index, 'season'] = valid_season_rows.iloc[0]['season']
 
-    print('\n4. Se corrigió el ruido de la variable season')
+    print('\n4. Cleaned noise in season variable')
     return df
 
 
@@ -95,7 +95,7 @@ def clean_yr(df: pd.DataFrame) -> pd.DataFrame:
                     df.loc[index, 'yr'] = np.nan
 
     df = df.drop('year_aux', axis=1)
-    print('\n5. Se corrigió el ruido de la variable yr')
+    print('\n5. Cleaned noise in yr variable')
     return df
 
 
@@ -110,7 +110,7 @@ def clean_mnth(df: pd.DataFrame) -> pd.DataFrame:
             else:
                 df.loc[index, 'mnth'] = np.nan
 
-    print('\n6. Se corrigió el ruido de la variable mnth')
+    print('\n6. Cleaned noise in mnth variable')
     return df
 
 
@@ -129,7 +129,7 @@ def clean_workingday(df: pd.DataFrame) -> pd.DataFrame:
                 df.loc[index, 'workingday'] = np.nan
 
     df['workingday'] = pd.to_numeric(df['workingday'], errors='coerce').astype('Int64')
-    print('\n7. Se corrigió el ruido de la variable workingday')
+    print('\n7. Cleaned noise in workingday variable')
     return df
 
 
@@ -145,23 +145,23 @@ def clean_weekday(df: pd.DataFrame) -> pd.DataFrame:
                 df.loc[index, 'weekday'] = np.nan
 
     df['weekday'] = pd.to_numeric(df['weekday'], errors='coerce').astype('Int64')
-    print('\n8. Se corrigió el ruido de la variable weekday')
+    print('\n8. Cleaned noise in weekday variable')
     return df
 
 
 def clean_weather_variables(df: pd.DataFrame) -> pd.DataFrame:
     """Clean weather variables (temp, atemp, hum, windspeed)."""
     clean_weather_var(df, 'temp', 10)
-    print('\n9. Se corrigió el ruido de la variable temp')
+    print('\n9. Cleaned noise in temp variable')
 
     clean_weather_var(df, 'atemp', 11)
-    print('\n10. Se corrigió el ruido de la variable atemp')
+    print('\n10. Cleaned noise in atemp variable')
 
     clean_weather_var(df, 'hum', 12)
-    print('\n11. Se corrigió el ruido de la variable hum')
+    print('\n11. Cleaned noise in hum variable')
 
     clean_weather_var(df, 'windspeed', 13)
-    print('\n12. Se corrigió el ruido de la variable windspeed')
+    print('\n12. Cleaned noise in windspeed variable')
 
     return df
 
@@ -372,7 +372,7 @@ def clean_count_variables(df: pd.DataFrame, iqr_multiplier: float = 2.5) -> pd.D
     print(f"Rows after deletion: {rows_after}")
     print(f"Rows deleted: {rows_deleted} ({rows_deleted/rows_before*100:.2f}%)")
 
-    print('\n14. Se corrigió el ruido de la variables: casual, registered y count')
+    print('\n14. Cleaned noise in variables: casual, registered and cnt')
     return df
 
 
@@ -389,7 +389,7 @@ def clean_holidays(df: pd.DataFrame) -> pd.DataFrame:
     holidays = [pd.to_datetime(date) for date in holidays]
     holidays_mask = df['dteday'].isin(holidays)
     df['holiday'] = holidays_mask.astype(int)
-    print('\n15. Se corrigió el ruido de la variable holidays')
+    print('\n15. Cleaned noise in holidays variable')
     return df
 
 
@@ -401,7 +401,7 @@ def clean_hr(df: pd.DataFrame) -> pd.DataFrame:
     df.loc[hour_mask_more_than_23, 'hr'] = np.nan
     new_df = df.groupby('dteday', group_keys=False)[['hr', 'dteday']].apply(fix_hour)
     df['hr'] = new_df['hr']
-    print('\n16. Se corrigió el ruido de la variable hr')
+    print('\n16. Cleaned noise in hr variable')
     return df
 
 
@@ -410,7 +410,7 @@ def clean_weathersit(df: pd.DataFrame) -> pd.DataFrame:
     weathersit_invalid_mask = df['weathersit'] > 4
     df.loc[weathersit_invalid_mask, 'weathersit'] = np.nan
     df['weathersit'] = df['weathersit'].bfill()
-    print('\n17. Se corrigió el ruido de la variable weathersit')
+    print('\n17. Cleaned noise in weathersit variable')
     return df
 
 
@@ -466,7 +466,7 @@ def main(input_path: Path = None, output_path: Path = None) -> pd.DataFrame:
     
     # Drop mixed_type_col
     bike_sharing = bike_sharing.drop('mixed_type_col', axis=1)
-    print('\n13. Se eliminó la columna mixed_type_col\n')
+    print('\n13. Removed column mixed_type_col\n')
 
     bike_sharing = clean_count_variables(bike_sharing)
     bike_sharing = clean_holidays(bike_sharing)
@@ -477,10 +477,10 @@ def main(input_path: Path = None, output_path: Path = None) -> pd.DataFrame:
     int_cols = ['instant', 'season', 'yr', 'mnth', 'hr', 'holiday', 'weekday', 'workingday', 'weathersit']
     for col in int_cols:
         to_int(bike_sharing, col)
-    print('\n18. Se convirtieron columnas enteras')
+    print('\n18. Converted integer columns')
 
     # Final info
-    print("\n19. Información del DataFrame después de la limpieza:\n")
+    print("\n19. DataFrame information after cleaning:\n")
     print(bike_sharing.info())
 
     # Validate cleaned data
@@ -491,7 +491,7 @@ def main(input_path: Path = None, output_path: Path = None) -> pd.DataFrame:
     try:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         bike_sharing.to_csv(output_path, index=False)
-        print(f"\n20. El DataFrame limpio se ha guardado en: {output_path}\n")
+        print(f"\n20. Cleaned DataFrame saved to: {output_path}\n")
     except Exception as e:
         raise IOError(f"Error saving cleaned data to {output_path}: {str(e)}") from e
 
