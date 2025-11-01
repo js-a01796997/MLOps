@@ -10,13 +10,9 @@ dependencies = [
     "numpy>=2.3.3",
     "pandas>=2.3.3",
     "pip>=25.3",
-<<<<<<< HEAD
-=======
     "scikit-learn>=1.7.2",
->>>>>>> 88f91590b14eecf665269a7a93a0672a67daf1be
     "scipy>=1.16.2",
     "seaborn>=0.13.2",
-    "scikit-learn",
     "ipykernel>=7.1.0",
     "xgboost>=3.1.1",
 ]
