@@ -130,4 +130,3 @@ uv.lock
 # Config backups
 config/*.bak
 config/temp_*.yaml
-/jacobo.csv
