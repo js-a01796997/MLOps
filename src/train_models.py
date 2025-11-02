@@ -17,6 +17,9 @@ import mlflow
 import mlflow.sklearn
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 from utils.config import load_config
 from utils.mlflow_setup import setup_mlflow
@@ -57,6 +60,49 @@ def calculate_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float
     }
 
 
+def create_prediction_plots(y_train, y_train_pred, y_test, y_test_pred, model_name):
+    """Create visualization plots for model predictions"""
+    fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+    fig.suptitle(f'{model_name} - Model Performance', fontsize=16)
+
+    # Plot 1: Actual vs Predicted (Train)
+    axes[0, 0].scatter(y_train, y_train_pred, alpha=0.5, s=10)
+    axes[0, 0].plot([y_train.min(), y_train.max()], [y_train.min(), y_train.max()], 'r--', lw=2)
+    axes[0, 0].set_xlabel('Actual')
+    axes[0, 0].set_ylabel('Predicted')
+    axes[0, 0].set_title('Train Set: Actual vs Predicted')
+    axes[0, 0].grid(True, alpha=0.3)
+
+    # Plot 2: Actual vs Predicted (Test)
+    axes[0, 1].scatter(y_test, y_test_pred, alpha=0.5, s=10)
+    axes[0, 1].plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
+    axes[0, 1].set_xlabel('Actual')
+    axes[0, 1].set_ylabel('Predicted')
+    axes[0, 1].set_title('Test Set: Actual vs Predicted')
+    axes[0, 1].grid(True, alpha=0.3)
+
+    # Plot 3: Residuals (Train)
+    residuals_train = y_train - y_train_pred
+    axes[1, 0].scatter(y_train_pred, residuals_train, alpha=0.5, s=10)
+    axes[1, 0].axhline(y=0, color='r', linestyle='--', lw=2)
+    axes[1, 0].set_xlabel('Predicted')
+    axes[1, 0].set_ylabel('Residuals')
+    axes[1, 0].set_title('Train Set: Residual Plot')
+    axes[1, 0].grid(True, alpha=0.3)
+
+    # Plot 4: Residuals (Test)
+    residuals_test = y_test - y_test_pred
+    axes[1, 1].scatter(y_test_pred, residuals_test, alpha=0.5, s=10)
+    axes[1, 1].axhline(y=0, color='r', linestyle='--', lw=2)
+    axes[1, 1].set_xlabel('Predicted')
+    axes[1, 1].set_ylabel('Residuals')
+    axes[1, 1].set_title('Test Set: Residual Plot')
+    axes[1, 1].grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    return fig
+
+
 def load_model_class(module_name: str, class_name: str):
     """Dynamically load model class from sklearn"""
     module = importlib.import_module(module_name)
@@ -93,9 +139,32 @@ def train_model(
 
     # Start MLflow run
     with mlflow.start_run(run_name=model_name, nested=True):
+        # Set tags for better organization
+        mlflow.set_tag("model_type", model_config['class'])
+        mlflow.set_tag("model_family", "regression")
+        mlflow.set_tag("dataset", "bike_sharing")
+        mlflow.set_tag("framework", model_config['module'].split('.')[0])
+        mlflow.set_tag("search_method", model_config.get('search_method', 'grid'))
+
+        # Set run description
+        run_description = f"Training {model_config['class']} model for bike sharing demand prediction using {model_config.get('search_method', 'grid')} search with {model_config['cv_folds']}-fold cross-validation"
+        mlflow.set_tag("mlflow.note.content", run_description)
+
         # Log configuration
         mlflow.log_param("model_type", model_config['class'])
         mlflow.log_param("cv_folds", model_config['cv_folds'])
+        mlflow.log_param("module", model_config['module'])
+
+        # Log dataset information
+        mlflow.log_param("n_features", X_train.shape[1])
+        mlflow.log_param("n_train_samples", X_train.shape[0])
+        mlflow.log_param("n_valid_samples", X_valid.shape[0])
+        mlflow.log_param("n_test_samples", X_test.shape[0])
+
+        # Log feature names
+        mlflow.log_param("target_variable", "cnt")
+        mlflow.log_text("\n".join(X_train.columns.tolist()), "features.txt")
+
         mlflow.log_dict(model_config['param_grid'], "param_grid.json")
 
         # Handle missing values by imputing with median
@@ -158,16 +227,17 @@ def train_model(
         mlflow.log_metric("cv_best_rmse", np.sqrt(-best_score))
         mlflow.log_metric("cv_best_score", best_score)
 
-        # Log best parameters
+        # Log best parameters found by search
         for param_name, param_value in best_params.items():
-            mlflow.log_param(f"best_{param_name}", param_value)
+            mlflow.log_param(param_name, param_value)
 
-        # Log all hyperparameters from param_grid for reference
-        for param_name in model_config['param_grid'].keys():
+        # Log all final model hyperparameters (including defaults)
+        all_params = best_model.get_params()
+        for param_name, param_value in all_params.items():
             if param_name not in best_params:
-                # Log default value if not in best_params
-                default_val = getattr(best_model, param_name, "default")
-                mlflow.log_param(f"best_{param_name}", default_val)
+                # Only log simple types to avoid clutter
+                if isinstance(param_value, (int, float, str, bool, type(None))):
+                    mlflow.log_param(f"default_{param_name}", param_value)
 
         # Predictions on all sets
         y_train_pred = best_model.predict(X_train)
@@ -191,6 +261,17 @@ def train_model(
         print(f"  Valid - RMSE: {valid_metrics['rmse']:.4f}, MAE: {valid_metrics['mae']:.4f}, R2: {valid_metrics['r2']:.4f}")
         print(f"  Test  - RMSE: {test_metrics['rmse']:.4f}, MAE: {test_metrics['mae']:.4f}, R2: {test_metrics['r2']:.4f}")
 
+        # Create and log prediction plots
+        try:
+            fig = create_prediction_plots(y_train, y_train_pred, y_test, y_test_pred, model_name)
+            plot_path = f"plots/{model_name}_predictions.png"
+            Path("plots").mkdir(exist_ok=True)
+            fig.savefig(plot_path, dpi=100, bbox_inches='tight')
+            mlflow.log_artifact(plot_path, "plots")
+            plt.close(fig)
+        except Exception as e:
+            print(f"Warning: Could not create plots: {e}")
+
         # Log feature importance if available
         if hasattr(best_model, 'feature_importances_'):
             feature_importance = pd.DataFrame({
@@ -210,11 +291,38 @@ def train_model(
             print(feature_importance.head(5).to_string(index=False))
 
         # Log model with MLflow
-        mlflow.sklearn.log_model(
+        model_info = mlflow.sklearn.log_model(
             sk_model=best_model,
             artifact_path="model",
             registered_model_name=f"bike_sharing_{model_name}"
         )
+
+        # Add description and tags to the registered model version
+        from mlflow.tracking import MlflowClient
+        client = MlflowClient()
+
+        # Get the registered model version
+        model_name_full = f"bike_sharing_{model_name}"
+        try:
+            # Update model description
+            model_description = f"{model_config['class']} model for bike sharing demand prediction. Trained with {model_config.get('search_method', 'grid')} search. Test RMSE: {test_metrics['rmse']:.4f}, R2: {test_metrics['r2']:.4f}"
+            client.update_registered_model(
+                name=model_name_full,
+                description=model_description
+            )
+
+            # Get latest version number
+            latest_versions = client.get_latest_versions(model_name_full, stages=["None"])
+            if latest_versions:
+                version = latest_versions[0].version
+
+                # Set tags on the model version
+                client.set_model_version_tag(model_name_full, version, "model_type", model_config['class'])
+                client.set_model_version_tag(model_name_full, version, "test_rmse", f"{test_metrics['rmse']:.4f}")
+                client.set_model_version_tag(model_name_full, version, "test_r2", f"{test_metrics['r2']:.4f}")
+                client.set_model_version_tag(model_name_full, version, "framework", model_config['module'])
+        except Exception as e:
+            print(f"Warning: Could not update model metadata: {e}")
 
         # Save model locally (for compatibility with existing workflow)
         models_dir = Path("models")
