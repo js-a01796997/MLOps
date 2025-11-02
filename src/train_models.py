@@ -209,7 +209,14 @@ def train_model(
             print(f"\nTop 5 important features:")
             print(feature_importance.head(5).to_string(index=False))
 
-        # Save model locally - DVC will handle versioning and remote storage
+        # Log model with MLflow
+        mlflow.sklearn.log_model(
+            sk_model=best_model,
+            artifact_path="model",
+            registered_model_name=f"bike_sharing_{model_name}"
+        )
+
+        # Save model locally (for compatibility with existing workflow)
         models_dir = Path("models")
         models_dir.mkdir(exist_ok=True)
         model_path = models_dir / f"modelo_{model_name}.pickle"
@@ -217,13 +224,8 @@ def train_model(
         with open(model_path, 'wb') as f:
             pickle.dump(best_model, f)
 
-        model_size_mb = model_path.stat().st_size / (1024 * 1024)
-        mlflow.log_metric("model_size_mb", model_size_mb)
-        mlflow.log_param("model_path", str(model_path))
-        mlflow.log_param("model_storage", "DVC")
-
-        print(f"\nModel saved to: {model_path} ({model_size_mb:.2f} MB)")
-        print("Model will be versioned with DVC")
+        mlflow.log_artifact(str(model_path), "pickled_model")
+        print(f"\nModel saved to: {model_path}")
 
         # Get run ID for later reference
         run_id = mlflow.active_run().info.run_id
