@@ -34,6 +34,7 @@ stages:
       - models/modelo_ridge_regression.pickle
       - models/modelo_lasso_regression.pickle
       - models/modelo_elasticnet.pickle
+      - models/modelo_xgboost.pickle
     metrics:
       - models/model_comparison.csv:
           cache: false

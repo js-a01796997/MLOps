@@ -125,7 +125,7 @@ def train_model(
                 cv=model_config['cv_folds'],
                 scoring='neg_mean_squared_error',
                 n_jobs=-1,
-                verbose=1,
+                verbose=0,
                 random_state=42
             )
             print(f"Running RandomizedSearchCV with {n_iter} iterations and {model_config['cv_folds']}-fold CV...")
@@ -138,7 +138,7 @@ def train_model(
                 cv=model_config['cv_folds'],
                 scoring='neg_mean_squared_error',
                 n_jobs=-1,
-                verbose=1
+                verbose=0
             )
             print(f"Running GridSearchCV with {model_config['cv_folds']}-fold CV...")
             mlflow.log_param("search_method", "grid")
@@ -148,12 +148,26 @@ def train_model(
         # Best model
         best_model = search.best_estimator_
         best_params = search.best_params_
+        best_score = search.best_score_
 
         print(f"\nBest parameters: {best_params}")
+        print(f"Best CV score (neg_MSE): {best_score:.4f}")
+        print(f"Best CV RMSE: {np.sqrt(-best_score):.4f}")
+
+        # Log search info
+        mlflow.log_metric("cv_best_rmse", np.sqrt(-best_score))
+        mlflow.log_metric("cv_best_score", best_score)
 
         # Log best parameters
         for param_name, param_value in best_params.items():
             mlflow.log_param(f"best_{param_name}", param_value)
+
+        # Log all hyperparameters from param_grid for reference
+        for param_name in model_config['param_grid'].keys():
+            if param_name not in best_params:
+                # Log default value if not in best_params
+                default_val = getattr(best_model, param_name, "default")
+                mlflow.log_param(f"best_{param_name}", default_val)
 
         # Predictions on all sets
         y_train_pred = best_model.predict(X_train)
@@ -177,14 +191,25 @@ def train_model(
         print(f"  Valid - RMSE: {valid_metrics['rmse']:.4f}, MAE: {valid_metrics['mae']:.4f}, R2: {valid_metrics['r2']:.4f}")
         print(f"  Test  - RMSE: {test_metrics['rmse']:.4f}, MAE: {test_metrics['mae']:.4f}, R2: {test_metrics['r2']:.4f}")
 
-        # Log model with MLflow
-        mlflow.sklearn.log_model(
-            sk_model=best_model,
-            artifact_path="model",
-            registered_model_name=f"bike_sharing_{model_name}"
-        )
+        # Log feature importance if available
+        if hasattr(best_model, 'feature_importances_'):
+            feature_importance = pd.DataFrame({
+                'feature': X_train.columns,
+                'importance': best_model.feature_importances_
+            }).sort_values('importance', ascending=False)
 
-        # Save model locally (for compatibility with existing workflow)
+            # Log top 10 features as parameters
+            for idx, row in feature_importance.head(10).iterrows():
+                mlflow.log_param(f"top_feature_{idx+1}", f"{row['feature']} ({row['importance']:.4f})")
+
+            # Save feature importance as artifact
+            importance_path = "feature_importance.csv"
+            feature_importance.to_csv(importance_path, index=False)
+            mlflow.log_artifact(importance_path)
+            print(f"\nTop 5 important features:")
+            print(feature_importance.head(5).to_string(index=False))
+
+        # Save model locally - DVC will handle versioning and remote storage
         models_dir = Path("models")
         models_dir.mkdir(exist_ok=True)
         model_path = models_dir / f"modelo_{model_name}.pickle"
@@ -192,8 +217,13 @@ def train_model(
         with open(model_path, 'wb') as f:
             pickle.dump(best_model, f)
 
-        mlflow.log_artifact(str(model_path), "pickled_model")
-        print(f"\nModel saved to: {model_path}")
+        model_size_mb = model_path.stat().st_size / (1024 * 1024)
+        mlflow.log_metric("model_size_mb", model_size_mb)
+        mlflow.log_param("model_path", str(model_path))
+        mlflow.log_param("model_storage", "DVC")
+
+        print(f"\nModel saved to: {model_path} ({model_size_mb:.2f} MB)")
+        print("Model will be versioned with DVC")
 
         # Get run ID for later reference
         run_id = mlflow.active_run().info.run_id
