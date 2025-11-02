@@ -1,0 +1,5 @@
+outs:
+- md5: 41c242066a2673bd3cca6d81a968925f
+  size: 1528099
+  hash: md5
+  path: modelo_xgboost.pickle
