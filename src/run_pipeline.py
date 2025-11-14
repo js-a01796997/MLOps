@@ -57,8 +57,8 @@ def main():
     parser.add_argument("--skip-splitting", action="store_true", help="Skip data splitting step")
     parser.add_argument("--skip-training", action="store_true", help="Skip model training step")
     parser.add_argument("--skip-registry", action="store_true", help="Skip model registry step")
-    parser.add_argument("--skip-xgboost", action="store_true", help="Skip XGBoost training and comparison")
     parser.add_argument("--models", nargs="+", help="Specific models to train")
+    parser.add_argument("--auto-promote", action="store_true", help="Automatically promote best model to Staging")
     
     args = parser.parse_args()
 
@@ -148,43 +148,24 @@ def main():
                 "Model training"
             )
 
-        # Train XGBoost if requested
-        if not args.skip_xgboost:
-            print("\n" + "-"*40)
-            print("Training XGBoost Model")
-            print("-"*40 + "\n")
-            
-            run_command(
-                ["python", "src/xgbregressor.py"],
-                "XGBoost training"
-            )
-
     # Step 4: Model Registry
     if not args.skip_registry:
         current_step += 1
         print_step("Model Registry & Promotion", current_step, total_steps)
 
-        # Include XGBoost in comparison by default unless skipped
-        if not args.skip_xgboost and Path("models/modelo_xgboost.pickle").exists():
+        run_command(
+            ["python", "src/model_registry.py", "--config", args.config, "--compare"],
+            "Model comparison and registry"
+        )
+
+        if args.auto_promote:
             run_command(
-                ["python", "src/model_registry.py", "--config", args.config, "--compare", "--include-xgboost"],
-                "Model comparison and registry (including XGBoost)"
+                ["python", "src/model_registry.py", "--config", args.config, "--auto-promote"],
+                "Auto-promotion to Staging"
             )
         else:
-            run_command(
-                ["python", "src/model_registry.py", "--config", args.config, "--compare"],
-                "Model comparison and registry"
-            )
-
-        print("\nWould you like to auto-promote the best model to Staging?")
-        response = input("Enter 'yes' to auto-promote: ").strip().lower()
-
-        if response == 'yes':
-            cmd = ["python", "src/model_registry.py", "--config", args.config, "--auto-promote"]
-            if not args.skip_xgboost:
-                cmd.append("--include-xgboost")
-
-            run_command(cmd, "Auto-promotion to Staging")
+            print("\nTo auto-promote the best model to Staging, run:")
+            print(f"  python src/model_registry.py --config {args.config} --auto-promote")
 
 
     print("\n" + "="*80)
