@@ -4,13 +4,13 @@ Trains multiple scikit-learn models with experiment tracking and model registry
 """
 
 import os
+import random
+import inspect
 import importlib
 import pickle
 from pathlib import Path
 from typing import Dict, Any, Tuple
 import warnings
-warnings.filterwarnings('ignore')
-
 import pandas as pd
 import numpy as np
 import mlflow
@@ -20,9 +20,16 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
 from utils.config import load_config
 from utils.mlflow_setup import setup_mlflow
+
+# Fijar semilla global para reproducibilidad
+SEED = 42
+os.environ["PYTHONHASHSEED"] = str(SEED)
+random.seed(SEED)
+np.random.seed(SEED)
+
+warnings.filterwarnings('ignore')
 
 
 def load_data(config: Dict[str, Any]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -137,6 +144,11 @@ def train_model(
     # Create base model
     base_model = model_class()
 
+    # Fijar random_state del modelo si el estimador lo soporta
+    params = base_model.get_params()
+    if "random_state" in params:
+        base_model.set_params(random_state=SEED)
+
     # Start MLflow run
     with mlflow.start_run(run_name=model_name, nested=True):
         # Set tags for better organization
@@ -195,7 +207,7 @@ def train_model(
                 scoring='neg_mean_squared_error',
                 n_jobs=-1,
                 verbose=0,
-                random_state=42
+                random_state=SEED
             )
             print(f"Running RandomizedSearchCV with {n_iter} iterations and {model_config['cv_folds']}-fold CV...")
             mlflow.log_param("search_method", "random")
