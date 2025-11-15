@@ -45,8 +45,8 @@ stages:
     deps:
     - path: config/models_config.yaml
       hash: md5
-      md5: 2717f794282ac010dd9a455b0a99b6ff
-      size: 3149
+      md5: fb6d0679bfc84c34e4982de20ed0dbbc
+      size: 3562
     - path: data/processed/test.csv
       hash: md5
       md5: 298b7cea71f3ca26b2d618066507ab15
@@ -61,8 +61,8 @@ stages:
       size: 554010
     - path: src/train_models.py
       hash: md5
-      md5: e1adbe74787f52c1cdc53cd918382edf
-      size: 13174
+      md5: 0dded8ceccef0f607601b28cc7bd8c89
+      size: 18573
     params:
       config/models_config.yaml:
         mlflow.experiment_name: bike_sharing_demand
@@ -151,6 +151,42 @@ stages:
               - 1000
               - 5000
             cv_folds: 5
+            xgboost:
+              enabled: true
+              module: xgboost
+              class: XGBRegressor
+              param_grid:
+                n_estimators:
+                - 100
+                - 200
+                max_depth:
+                - 3
+                - 5
+                - 7
+                - 9
+                learning_rate:
+                - 0.01
+                - 0.1
+                - 0.3
+                subsample:
+                - 0.8
+                - 0.9
+                - 1.0
+                colsample_bytree:
+                - 0.6
+                - 0.7
+                - 0.8
+                gamma:
+                - 0
+                - 0.1
+                - 0.2
+                min_child_weight:
+                - 1
+                - 3
+                - 5
+              cv_folds: 3
+              search_method: randomized
+              n_iter: 10
           random_forest:
             enabled: false
             class: RandomForestRegressor
@@ -242,28 +278,28 @@ stages:
     outs:
     - path: models/model_comparison.csv
       hash: md5
-      md5: 98e6b76719f579a0fe201ae43b8bcc7d
-      size: 1050
+      md5: 9558edc5b8a7e1ea65f0804085d9a99a
+      size: 1055
     - path: models/modelo_elasticnet.pickle
       hash: md5
-      md5: 81b84a94221a45d9dcfe6301531f9190
-      size: 1177
+      md5: a3a3052ee34d39cf3e03056c3d9f460c
+      size: 1178
     - path: models/modelo_lasso_regression.pickle
       hash: md5
-      md5: 05e3953f2f49bbb14c824c2d864cbc13
-      size: 1162
+      md5: e27889a4ee639014ab4ac7acca5b7321
+      size: 1163
     - path: models/modelo_linear_regression.pickle
       hash: md5
-      md5: fa09311672d1b399d2c21926604b6f4c
+      md5: 701805db5ffe15b762fda280f53e5186
       size: 1320
     - path: models/modelo_ridge_regression.pickle
       hash: md5
-      md5: e2c1b8ff7d34537bb1bb99aefdee50ff
-      size: 1095
+      md5: 62917f6635b649822056fb73c1c043fd
+      size: 1096
     - path: models/modelo_xgboost.pickle
       hash: md5
-      md5: 71bc05c5791b1fe25b3212e8a9dd9b02
-      size: 3527111
+      md5: f8fe449d3e372b6f49e82c9287e99f47
+      size: 3590555
   test:
     cmd: uv run pytest tests/ -v
     deps:
