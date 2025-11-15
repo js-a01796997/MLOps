@@ -230,10 +230,16 @@ def train_pipeline_with_search(
         f'model__{key}': value for key, value in param_grid.items()
     }
 
+    if isinstance(base_pipeline, Pipeline):
+        search_param_grid = {f"model__{k}": v for k, v in param_grid.items()}
+    else:
+        search_param_grid = param_grid
+
+
     if search_method.lower() == 'random':
         search = RandomizedSearchCV(
             estimator=base_pipeline,
-            param_distributions=adjusted_param_grid,
+            param_distributions=search_param_grid,
             n_iter=n_iter,
             cv=cv_folds,
             scoring=scoring,
