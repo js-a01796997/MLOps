@@ -9,60 +9,60 @@ stages:
       size: 1686247
     - path: src/data_cleaning.py
       hash: md5
-      md5: 7926d0c095b8ed377c73b8916159b989
-      size: 19472
+      md5: e83c4aaddea6d87dcc4df7a8bffd8e0b
+      size: 18961
     outs:
     - path: data/processed/bike_sharing_cleaned.csv
       hash: md5
-      md5: 63f41ae535d8b00f4cc94068540047bb
-      size: 1155905
+      md5: aba16c5849dd5c5680fe5c43d963c2ce
+      size: 1138549
   split_data:
     cmd: uv run src/data_split.py
     deps:
     - path: data/processed/bike_sharing_cleaned.csv
       hash: md5
-      md5: 63f41ae535d8b00f4cc94068540047bb
-      size: 1155905
+      md5: aba16c5849dd5c5680fe5c43d963c2ce
+      size: 1138549
     - path: src/data_split.py
       hash: md5
-      md5: 026bf5a15c98941071f6e7f2a95a475d
-      size: 9244
+      md5: 695f6f1abbc55a0bbe543fc5eee00c58
+      size: 8958
     outs:
     - path: data/processed/test.csv
       hash: md5
-      md5: 5da82bbd9ffda938af6d8f895e3e7b8d
-      size: 555981
+      md5: 298b7cea71f3ca26b2d618066507ab15
+      size: 553376
     - path: data/processed/train.csv
       hash: md5
-      md5: 1f0e8af20b973a06aa9952ab40954b7e
-      size: 2595876
+      md5: 41dfaf2a656981a32421d8491074d451
+      size: 2583727
     - path: data/processed/valid.csv
       hash: md5
-      md5: 3f73cb772ee2da74c2fa5ca15406d4d9
-      size: 556614
+      md5: b0ac1f4d342bc896ce5b23f09528292d
+      size: 554010
   train:
     cmd: uv run src/train_models.py config/models_config.yaml
     deps:
     - path: config/models_config.yaml
       hash: md5
-      md5: 71ee86d16f6b5b21f696db72706e906c
-      size: 3694
+      md5: fb6d0679bfc84c34e4982de20ed0dbbc
+      size: 3562
     - path: data/processed/test.csv
       hash: md5
-      md5: 5da82bbd9ffda938af6d8f895e3e7b8d
-      size: 555981
+      md5: 298b7cea71f3ca26b2d618066507ab15
+      size: 553376
     - path: data/processed/train.csv
       hash: md5
-      md5: 1f0e8af20b973a06aa9952ab40954b7e
-      size: 2595876
+      md5: 41dfaf2a656981a32421d8491074d451
+      size: 2583727
     - path: data/processed/valid.csv
       hash: md5
-      md5: 3f73cb772ee2da74c2fa5ca15406d4d9
-      size: 556614
+      md5: b0ac1f4d342bc896ce5b23f09528292d
+      size: 554010
     - path: src/train_models.py
       hash: md5
-      md5: 37b2ecbb60015a84a47e6310de6753e2
-      size: 19056
+      md5: 0dded8ceccef0f607601b28cc7bd8c89
+      size: 18573
     params:
       config/models_config.yaml:
         mlflow.experiment_name: bike_sharing_demand
@@ -278,36 +278,36 @@ stages:
     outs:
     - path: models/model_comparison.csv
       hash: md5
-      md5: 16483dc3904111f8f92ed0c8e4ce02a4
-      size: 1060
+      md5: 9558edc5b8a7e1ea65f0804085d9a99a
+      size: 1055
     - path: models/modelo_elasticnet.pickle
       hash: md5
-      md5: f996d5d2ed3ce6d772c315852faef655
+      md5: a3a3052ee34d39cf3e03056c3d9f460c
       size: 1178
     - path: models/modelo_lasso_regression.pickle
       hash: md5
-      md5: cf337e38e8ed19df56ad499f33f3dcf9
+      md5: e27889a4ee639014ab4ac7acca5b7321
       size: 1163
     - path: models/modelo_linear_regression.pickle
       hash: md5
-      md5: 3eb45e651ced13c2fe850cc2d7073409
+      md5: 701805db5ffe15b762fda280f53e5186
       size: 1320
     - path: models/modelo_ridge_regression.pickle
       hash: md5
-      md5: 593ef7b8983b293a3ec15946d60cde91
+      md5: 62917f6635b649822056fb73c1c043fd
       size: 1096
     - path: models/modelo_xgboost.pickle
       hash: md5
-      md5: 1b5e42f0f899808300800809f884e7c1
-      size: 3508275
+      md5: f8fe449d3e372b6f49e82c9287e99f47
+      size: 3590555
   test:
     cmd: uv run pytest tests/ -v
     deps:
     - path: src/data_cleaning.py
       hash: md5
-      md5: 7926d0c095b8ed377c73b8916159b989
-      size: 19472
+      md5: e83c4aaddea6d87dcc4df7a8bffd8e0b
+      size: 18961
     - path: tests/test_data_cleaning.py
       hash: md5
-      md5: 21b86790cc5f1bce429487c170ec08fb
-      size: 8255
+      md5: f78ea69cb97eb1da37be58071296d356
+      size: 8028
