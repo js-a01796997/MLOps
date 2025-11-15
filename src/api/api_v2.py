@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import numpy as np
 import mlflow
 from mlflow.tracking import MlflowClient
+from common import PredictRequest, PredictResponse, validate_predict_input
 
 api_v2 = APIRouter(prefix="/v2", tags=["v2 (MLflow Registry)"])
 
@@ -38,16 +39,6 @@ class RegisteredModelInfo(BaseModel):
 # caché de modelos cargados para no hacer tantas peticiones a MLflow en cada request
 model_cache: Dict[str, Any] = {}
 model_cache_metadata: Dict[str, ModelMetadata] = {}
-
-
-# ========= Schemas =========
-
-class PredictRequest(BaseModel):
-    features: Optional[List[List[float]]] = None
-
-
-class PredictResponse(BaseModel):
-    predictions: List[float]
 
 
 # ========= Helpers =========
@@ -139,36 +130,9 @@ async def model_info(model_id: str):
 async def predict(model_id: str, req: PredictRequest):
     model, meta = get_model_from_registry(model_id)
 
-    if req.features is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Debes enviar 'features' con una o varias observaciones",
-        )
-
     expected_n_features = meta.n_features  # puede ser None
 
-    # Normalización y validación
-    if len(req.features) == 0:
-        raise HTTPException(
-            status_code=422,
-            detail="'features' no puede estar vacío.",
-        )
-
-    row_lengths = {len(row) for row in req.features}
-    if len(row_lengths) != 1:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Todas las filas de 'features' deben tener la misma longitud. "
-                    f"Se encontraron longitudes: {sorted(row_lengths)}",
-        )
-
-    num_features_row = row_lengths.pop()
-    if expected_n_features is not None and num_features_row != expected_n_features:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Cada fila de 'features' tiene {num_features_row} features, "
-                    f"pero el modelo '{model_id}' espera {expected_n_features} features.",
-        )
+    validate_predict_input(req, model_id, expected_n_features)
 
     X = np.array(req.features, dtype=float)
 

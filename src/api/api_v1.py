@@ -4,6 +4,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 import pickle
 import numpy as np
+from common import PredictRequest, PredictResponse, validate_predict_input
 
 api_v1 = APIRouter(prefix="/v1", tags=["v1 (Local Models)"])
 
@@ -19,16 +20,6 @@ class ModelMetadata(BaseModel):
 
 models: Dict[str, Any] = {}
 models_metadata: Dict[str, ModelMetadata] = {}
-
-# ========= Schemas Entrada/Salida =========
-
-class PredictRequest(BaseModel):
-    features: Optional[List[List[float]]] = None
-
-
-class PredictResponse(BaseModel):
-    predictions: List[float]
-
 
 # ========= Helpers =========
 
@@ -100,38 +91,11 @@ async def predict(model_id: str, req: PredictRequest):
     global models, models_metadata
 
     model, meta = get_model_or_404(model_id)
-
-    # Validación básica de que haya features
-    if req.features is None:
-        raise HTTPException(
-            status_code=400,
-            detail="Debes enviar 'features' con una o varias observaciones",
-        )
-
+    
     expected_n_features = meta.n_features or getattr(model, "n_features_in_", None)
-
-    if len(req.features) == 0:
-        raise HTTPException(
-            status_code=422,
-            detail="'features' no puede estar vacío.",
-        )
-
-    row_lengths = {len(row) for row in req.features}
-    if len(row_lengths) != 1:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Todas las filas de 'features' deben tener la misma longitud. "
-                    f"Se encontraron longitudes: {sorted(row_lengths)}",
-        )
-
-    num_features_row = row_lengths.pop()
-    if expected_n_features is not None and num_features_row != expected_n_features:
-        raise HTTPException(
-            status_code=422,
-            detail=f"Cada fila de 'features' tiene {num_features_row} features, "
-                    f"pero el modelo '{model_id}' espera {expected_n_features} features.",
-        )
-
+    
+    validate_predict_input(req, model_id, expected_n_features)
+    
     X = np.array(req.features, dtype=float)
 
     try:
