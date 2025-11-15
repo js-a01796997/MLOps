@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from api_v1 import api_v1
+from api_v2 import api_v2
 
 # NOTAS:
 # Necesita la variable de entorno para conocer donde esta MLFlow
@@ -13,6 +14,8 @@ app = FastAPI(
 
 # Modelos Locales
 app.include_router(api_v1)
+# Modelos de MLFlow
+app.include_router(api_v2)
 
 @app.get("/", summary="Root", include_in_schema=False)
 async def root():
