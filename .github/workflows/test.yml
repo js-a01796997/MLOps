@@ -1,0 +1,54 @@
+name: Run Unit Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: "latest"
+
+    - name: Install dependencies
+      run: |
+        uv pip install --system -r requirements.txt
+
+    - name: Configure DVC remote
+      env:
+        DVC_USER: ${{ secrets.DVC_USER }}
+        DVC_PASS: ${{ secrets.DVC_PASS }}
+      run: |
+        dvc remote modify s3 access_key_id $DVC_USER
+        dvc remote modify s3 secret_access_key $DVC_PASS
+
+    - name: Pull DVC data
+      run: |
+        set +e
+        dvc pull
+        set -e
+
+    - name: Run unit tests
+      run: |
+        uv run pytest tests/ -v
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          .pytest_cache/
+          tests/
