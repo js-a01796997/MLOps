@@ -1,0 +1,113 @@
+# Git
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.virtualenv
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+notebooks/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# MLflow (no necesario en contenedor)
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Models (tracked by DVC) - Excluir solo archivos específicos dentro de models/
+models/*.dvc
+models/*.csv
+models/*.ipynb
+models/*.h5
+models/*.pt
+models/*.pth
+models/*.joblib
+models/*.model
+models/*.onnx
+# Excluir archivos pickle fuera de models/, pero permitir models/*.pickle y models/*.pkl
+*.pickle
+!models/*.pickle
+*.pkl
+!models/*.pkl
+
+# DVC
+.dvc/
+dvc.yaml
+dvc.lock
+
+# Data (no necesario para API)
+data/
+*.csv
+*.zip
+
+# Tests
+tests/
+test_*.py
+pytest.ini
+.pytest_cache/
+
+# Documentation
+docs/
+*.md
+README.md
+
+# Reports y plots
+reports/
+plots/
+feature_importance.csv
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+temp/
+tmp/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+nosetests.xml
+.hypothesis/
+
+# Build artifacts
+build/
+dist/
+*.egg
+
+# Otros archivos de configuración no necesarios
+MLproject
+requirements.txt
+
