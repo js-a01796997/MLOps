@@ -1,0 +1,47 @@
+
+image:
+  pullPolicy: Always
+  # tag will be dynamically set by the deployment action
+
+deployment:
+  enabled: true
+  containers:
+  - name: bike-sharing-prediction-api
+    image: jsdevart/mlops:latest
+    replicaCount: 1
+    envFrom:
+      - configMapRef:
+          name: bike-sharing-prediction-api-env
+      - secretRef:
+          name: bike-sharing-prediction-api-secret
+    ports:
+      - name: http
+        containerPort: 8000
+        protocol: TCP
+    resources: {}
+
+configmaps:
+  - name: bike-sharing-prediction-api-env
+    data:
+      MLFLOW_TRACKING_URI: "https://mlflow.labs.jsdevart.com/"
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: http
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    acme.cert-manager.io/http01-ingress-class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "2048m"
+  host: bike-sharing-prediction-api.labs.jsdevart.com
+  path: /
+  pathType: Prefix
+  tls:
+    - hosts:
+        - bike-sharing-prediction-api.labs.jsdevart.com
+      secretName: bike-sharing-prediction-api-tls

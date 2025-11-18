@@ -16,7 +16,14 @@ DOCKERFILE ?= Dockerfile
 # Puerto por defecto
 PORT ?= 8000
 
-.PHONY: build push run
+# Variables para Helm
+HELM_CHART ?= oci://registry-1.docker.io/jsdevart/jsdevart-chart
+HELM_VERSION ?= 0.1.8
+HELM_NAMESPACE ?= mlflow
+HELM_RELEASE_NAME ?= bike-sharing-prediction-api
+HELM_VALUES_FILE ?= .helm/values.yml
+
+.PHONY: build push run deploy
 
 build: ## Construir la imagen Docker
 	@echo "🔨 Construyendo imagen: $(FULL_IMAGE_NAME)"
@@ -31,3 +38,11 @@ push: ## Hacer push de la imagen al registry
 run: ## Ejecutar el contenedor en modo interactivo
 	@echo "🚀 Ejecutando contenedor: $(FULL_IMAGE_NAME)"
 	docker run -it --rm -p $(PORT):8000 $(FULL_IMAGE_NAME)
+
+deploy: ## Desplegar la aplicación con Helm
+	@echo "🚀 Desplegando $(HELM_RELEASE_NAME) en namespace $(HELM_NAMESPACE)"
+	helm upgrade --install $(HELM_RELEASE_NAME) $(HELM_CHART) \
+		--namespace $(HELM_NAMESPACE) \
+		--version $(HELM_VERSION) \
+		-f $(HELM_VALUES_FILE)
+	@echo "✓ Despliegue completado"
