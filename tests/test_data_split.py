@@ -198,7 +198,7 @@ class TestScaleFeatures:
         assert hasattr(scaler, 'data_max_')
 
     def test_scaled_values_in_range(self, sample_splits):
-        """Test that scaled values are in [0, 1] range"""
+        """Test that scaled values are in [0, 1] range (with floating point tolerance)"""
         train, valid, test = sample_splits
 
         cols_to_scale = ['temp', 'atemp', 'hum', 'windspeed', 'cnt']
@@ -206,9 +206,9 @@ class TestScaleFeatures:
 
         for col in cols_to_scale:
             if col in train_scaled.columns:
-                # Training data should be in [0, 1]
-                assert train_scaled[col].min() >= 0.0
-                assert train_scaled[col].max() <= 1.0
+                # Training data should be in [0, 1] with small tolerance for floating point errors
+                assert train_scaled[col].min() >= -1e-10, f"{col} min is {train_scaled[col].min()}"
+                assert train_scaled[col].max() <= 1.0 + 1e-10, f"{col} max is {train_scaled[col].max()}"
 
                 # Note: valid and test might go slightly outside [0, 1] if they have values
                 # outside the training range - this is expected behavior

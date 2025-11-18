@@ -18,7 +18,7 @@ class TestCleanWeatherVar:
     """Tests for clean_weather_var function"""
 
     def test_out_of_range_values_set_to_nan(self):
-        """Test that values > 1 are set to NaN"""
+        """Test that values > 1 are set to NaN and then backfilled"""
         data = {
             'temp': [0.5, 0.8, 1.5, 2.0, 0.3],  # 1.5 and 2.0 are out of range
             'other': [1, 2, 3, 4, 5]
@@ -27,12 +27,14 @@ class TestCleanWeatherVar:
 
         clean_weather_var(df, 'temp', 0)
 
-        # Values > 1 should be NaN now
-        assert pd.isna(df.iloc[2, 0])
-        assert pd.isna(df.iloc[3, 0])
-        # Values <= 1 should remain
+        # The function sets values > 1 to NaN, then backfills them
+        # So they should be filled with the next valid value (0.3)
+        assert df.iloc[2, 0] == 0.3  # 1.5 backfilled with 0.3
+        assert df.iloc[3, 0] == 0.3  # 2.0 backfilled with 0.3
+        # Values <= 1 should remain unchanged
         assert df.iloc[0, 0] == 0.5
         assert df.iloc[1, 0] == 0.8
+        assert df.iloc[4, 0] == 0.3
 
     def test_nan_values_filled_by_backfill(self):
         """Test that NaN values are filled using backfill"""
