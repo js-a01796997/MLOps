@@ -36,9 +36,7 @@ jobs:
 
     - name: Pull DVC data
       run: |
-        set +e
         dvc pull
-        set -e
 
     - name: Run unit tests
       run: |
