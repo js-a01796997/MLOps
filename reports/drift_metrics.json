@@ -1,0 +1,17 @@
+{
+    "model_path": "models/modelo_xgboost.pickle",
+    "reference_metrics": {
+        "rmse": 0.041672496837463394,
+        "mae": 0.023392371928678213,
+        "r2": 0.8753279689908495
+    },
+    "drifted_metrics": {
+        "rmse": 0.12337654878861529,
+        "mae": 0.08853640875700139,
+        "r2": -0.09278625808081498
+    },
+    "degradation": {
+        "rmse_delta": 0.0817040519511519,
+        "rmse_pct_increase": 196.0622908433466
+    }
+}
