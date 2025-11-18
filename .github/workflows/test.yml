@@ -35,15 +35,18 @@ jobs:
         DVC_USER: ${{ secrets.DVC_USER }}
         DVC_PASS: ${{ secrets.DVC_PASS }}
       run: |
+        source .venv/bin/activate
         dvc remote modify s3 access_key_id $DVC_USER
         dvc remote modify s3 secret_access_key $DVC_PASS
 
     - name: Pull DVC data
       run: |
+        source .venv/bin/activate
         dvc pull
 
     - name: Run local tests
       run: |
+        source .venv/bin/activate
         uv run pytest -m "not e2e" -v --tb=short
 
     - name: Upload test results
@@ -82,6 +85,7 @@ jobs:
       env:
         MLFLOW_TRACKING_URI: 'https://mlflow.labs.jsdevart.com/'
       run: |
+        source .venv/bin/activate
         uv run pytest -m e2e -v --tb=short
 
     - name: Upload E2E test results
