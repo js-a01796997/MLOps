@@ -321,17 +321,28 @@ class TestAPIWithRealMLflow:
 
     def test_real_model_prediction(self):
         """Test prediction with real model from MLflow"""
-        # This test uses bike_sharing_xgboost:8 - adjust based on your models
+        # Get model info first to know the required number of features
+        info_response = client.get("/v2/models/bike_sharing_xgboost:8/info")
+        assert info_response.status_code == 200, "Model info should be accessible"
+
+        model_info = info_response.json()
+        n_features = model_info.get("n_features", 31)  # Default to 31 if not available
+
+        # Create a sample feature vector with the correct number of features
+        # bike_sharing_xgboost:8 expects 31 features (after one-hot encoding)
+        sample_features = [0.5] * n_features
+
         response = client.post(
             "/v2/models/bike_sharing_xgboost:8/predict",
-            json={"features": [[0.5] * 10]}  # Adjust feature count as needed
+            json={"features": [sample_features]}
         )
 
-        assert response.status_code == 200
+        assert response.status_code == 200, f"Prediction failed: {response.json()}"
         data = response.json()
         assert "predictions" in data
         assert isinstance(data["predictions"], list)
         assert len(data["predictions"]) > 0
+        assert isinstance(data["predictions"][0], (int, float)), "Prediction should be numeric"
 
     def test_real_model_info(self):
         """Test model info retrieval from real MLflow registry"""
