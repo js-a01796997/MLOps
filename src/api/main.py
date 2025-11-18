@@ -31,3 +31,7 @@ app.include_router(api_v2)
 @app.get("/", summary="Root", include_in_schema=False)
 async def root():
     return {"status": "ok", "message": "Bike Sharing Prediction API"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
