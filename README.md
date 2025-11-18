@@ -32,11 +32,41 @@ Este comando:
 - Instala todas las dependencias definidas en `pyproject.toml`
 - Genera/actualiza el archivo `uv.lock` para asegurar reproducibilidad
 
-# Ejecución con dvc
+# Ejecución con DVC
+
 `dvc.yaml` contiene las etapas de ejecución de este proyecto, para ejecutar usa el siguiente comando: `dvc repro`
 
-## Etapas
-- `preprocess`: esta etapa esta a cargo de leer los datos y limpiarlos
+## Etapas del Pipeline
+
+- `preprocess`: Lee los datos crudos y los limpia (manejo de valores faltantes, corrección de tipos, etc.)
+- `split_data`: Divide los datos limpios en conjuntos de entrenamiento, validación y prueba
+- `train`: Entrena múltiples modelos de machine learning y registra métricas en MLflow
+- `test`: Ejecuta las pruebas automatizadas para validar el código y los datos
+
+## Testing
+
+El proyecto incluye pruebas automatizadas completas que validan la calidad de los datos, la funcionalidad del pipeline y los endpoints de la API.
+
+### Ejecutar todas las pruebas
+
+```bash
+# Comando rápido
+pytest -q
+
+# Con salida detallada
+uv run pytest tests/ -v
+
+# Ejecutar solo pruebas unitarias
+uv run pytest -m unit
+
+# Ejecutar pruebas de integración
+uv run pytest -m integration
+
+# Ejecutar pruebas de API
+uv run pytest -m api
+```
+
+Para más información sobre las pruebas, consulta la documentación completa en `docs/Testing.md`.
 
 ## MLflow Configuration
 
