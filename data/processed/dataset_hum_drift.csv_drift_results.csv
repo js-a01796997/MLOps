@@ -1,0 +1,17 @@
+feature,p_value,drift
+instant,,False
+dteday,0.0,True
+season,,False
+yr,,False
+mnth,,False
+hr,,False
+holiday,,False
+weekday,,False
+workingday,,False
+weathersit,,False
+temp,1.0,False
+atemp,1.0,False
+hum,0.0,True
+windspeed,1.0,False
+casual,1.0,False
+registered,1.0,False
