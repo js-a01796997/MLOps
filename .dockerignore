@@ -1,0 +1,108 @@
+# Git
+.git/
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+.virtualenv
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+notebooks/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# MLflow (no necesario en contenedor)
+mlruns/
+mlartifacts/
+mlflow.db
+
+# Models (tracked by DVC, no necesario para API)
+models/
+*.pickle
+*.pkl
+*.h5
+*.pt
+*.pth
+*.joblib
+*.model
+*.onnx
+
+# DVC
+.dvc/
+dvc.yaml
+dvc.lock
+
+# Data (no necesario para API)
+data/
+*.csv
+*.zip
+
+# Tests
+tests/
+test_*.py
+pytest.ini
+.pytest_cache/
+
+# Documentation
+docs/
+*.md
+README.md
+
+# Reports y plots
+reports/
+plots/
+feature_importance.csv
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+temp/
+tmp/
+
+# Coverage
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+nosetests.xml
+.hypothesis/
+
+# Build artifacts
+build/
+dist/
+*.egg
+
+# Otros archivos de configuración no necesarios
+MLproject
+requirements.txt
+
