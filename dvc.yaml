@@ -43,4 +43,11 @@ stages:
     cmd: uv run pytest tests/ -v
     deps:
       - tests/test_data_cleaning.py
+      - tests/test_data_split.py
+      - tests/test_clean_utils.py
+      - tests/test_pipeline_integration.py
+      - tests/test_imports.py
       - src/data_cleaning.py
+      - src/data_split.py
+      - src/clean_utils.py
+      - pytest.ini
