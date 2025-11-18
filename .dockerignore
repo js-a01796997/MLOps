@@ -36,16 +36,21 @@ mlruns/
 mlartifacts/
 mlflow.db
 
-# Models (tracked by DVC, no necesario para API)
-models/
+# Models (tracked by DVC) - Excluir solo archivos específicos dentro de models/
+models/*.dvc
+models/*.csv
+models/*.ipynb
+models/*.h5
+models/*.pt
+models/*.pth
+models/*.joblib
+models/*.model
+models/*.onnx
+# Excluir archivos pickle fuera de models/, pero permitir models/*.pickle y models/*.pkl
 *.pickle
+!models/*.pickle
 *.pkl
-*.h5
-*.pt
-*.pth
-*.joblib
-*.model
-*.onnx
+!models/*.pkl
 
 # DVC
 .dvc/

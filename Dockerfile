@@ -18,6 +18,14 @@ RUN uv sync --frozen --no-dev
 # Copiar solo el código de la API
 COPY src/api/ ./src/api/
 
+# Copiar solo archivos .pickle y .pkl de la carpeta de modelos (excluyendo .dvc)
+# Primero copiamos todo models/ a un directorio temporal
+COPY ./models/ /tmp/models/
+# Luego filtramos y copiamos solo los .pickle y .pkl
+RUN mkdir -p ./models && \
+    find /tmp/models/ -type f \( -name "*.pickle" -o -name "*.pkl" \) ! -name "*.dvc" -exec cp {} ./models/ \; && \
+    rm -rf /tmp/models
+
 # Exponer el puerto 8000
 EXPOSE 8000
 
