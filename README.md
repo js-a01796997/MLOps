@@ -80,3 +80,19 @@ MLFLOW_TRACKING_PASSWORD=tu_contraseña
 
 Después de entrenar modelos, puedes ver los experimentos en:
 **https://mlflow.labs.jsdevart.com/**
+
+# Predict API Local (FastAPI)
+- Se necesita poner una variable de entorno `MLFLOW_TRACKING_URI=https://mlflow.labs.jsdevart.com/`
+- La API puede ejecutarse localmente desde `src/api` y ejecutando el comando `uvicorn main:app`
+- La URL local del servidor es http://localhost:8000
+- La documentación en Swagger y la opción para probar endpoints esta en: http://localhost:8000/docs
+
+## Endpoints
+Se decidió usar versionamiento en la URL para la API, siguiendo una convención sencilla:
+`/v2/models`: listar modelos registrados en MLflow.
+`/v2/models/{model_id}/info`: consultar metadata de un modelo específico.
+`/v2/models/{model_id}/predict`: realizar predicciones con un modelo específico.
+
+## Notas:
+- El modelo mas reciente es `model_id=bike_sharing_xgboost:8`
+- `v2` es la versión más reciente y está se integra con los modelos publicados en MLFlow
