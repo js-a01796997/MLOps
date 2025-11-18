@@ -1,11 +1,15 @@
-name: Run Unit Tests
+name: Test Suite
 
 on:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Allow manual trigger
 
 jobs:
-  test:
+  local-tests:
+    name: Unit test
     runs-on: ubuntu-latest
 
     steps:
@@ -15,7 +19,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
 
     - name: Install uv
       uses: astral-sh/setup-uv@v4
@@ -24,29 +28,71 @@ jobs:
 
     - name: Install dependencies
       run: |
-        uv pip install --system -r requirements.txt
+        uv sync
 
     - name: Configure DVC remote
       env:
         DVC_USER: ${{ secrets.DVC_USER }}
         DVC_PASS: ${{ secrets.DVC_PASS }}
       run: |
+        source .venv/bin/activate
         dvc remote modify s3 access_key_id $DVC_USER
         dvc remote modify s3 secret_access_key $DVC_PASS
 
     - name: Pull DVC data
       run: |
+        source .venv/bin/activate
         dvc pull
 
-    - name: Run unit tests
+    - name: Run local tests
       run: |
-        uv run pytest tests/ -v
+        source .venv/bin/activate
+        uv run pytest -m "not e2e" -v --tb=short
 
     - name: Upload test results
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results
+        name: local-test-results
+        path: |
+          .pytest_cache/
+          tests/
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: local-tests
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v4
+      with:
+        version: "latest"
+
+    - name: Install dependencies
+      run: |
+        uv sync
+
+    - name: Run E2E tests
+      env:
+        MLFLOW_TRACKING_URI: 'https://mlflow.labs.jsdevart.com/'
+      run: |
+        source .venv/bin/activate
+        uv run pytest -m e2e -v --tb=short
+
+    - name: Upload E2E test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: e2e-test-results
         path: |
           .pytest_cache/
           tests/
