@@ -302,43 +302,57 @@ class TestModelCaching:
         assert mock_load_model.call_count == 2
 
 
-# Tests that require actual MLflow server (marked for optional execution)
-@pytest.mark.skipif(
-    True,  # Change to False if you want to run these tests with a real MLflow server
-    reason="Requires MLflow server and registered models"
-)
+# E2E Tests - Tests with real MLflow server
+# Run with: pytest -m e2e
+# Or skip with: pytest -m "not e2e"
+@pytest.mark.e2e
 class TestAPIWithRealMLflow:
-    """Tests that require actual MLflow server connection
+    """End-to-End tests that connect to actual MLflow server
 
-    These tests are skipped by default. To run them:
-    1. Start MLflow server
-    2. Register test models
-    3. Change skipif condition to False
+    These tests validate the API works correctly with a real MLflow deployment.
+
+    To run these tests:
+    1. Ensure MLflow server is accessible at MLFLOW_TRACKING_URI
+    2. Ensure you have models registered in MLflow
+    3. Run: MLFLOW_TRACKING_URI=<url> pytest -m e2e -v
+
+    To skip: pytest -m "not e2e"
     """
 
     def test_real_model_prediction(self):
-        """Test prediction with real model (requires MLflow)"""
+        """Test prediction with real model from MLflow"""
+        # This test uses bike_sharing_xgboost:8 - adjust based on your models
         response = client.post(
             "/v2/models/bike_sharing_xgboost:8/predict",
             json={"features": [[0.5] * 10]}  # Adjust feature count as needed
         )
 
         assert response.status_code == 200
-        assert "predictions" in response.json()
+        data = response.json()
+        assert "predictions" in data
+        assert isinstance(data["predictions"], list)
+        assert len(data["predictions"]) > 0
 
     def test_real_model_info(self):
-        """Test model info with real model (requires MLflow)"""
+        """Test model info retrieval from real MLflow registry"""
         response = client.get("/v2/models/bike_sharing_xgboost:8/info")
 
         assert response.status_code == 200
         data = response.json()
         assert data["model_id"] == "bike_sharing_xgboost:8"
+        assert "n_features" in data
+        assert "loaded_at" in data
 
     def test_list_real_models(self):
-        """Test listing real models (requires MLflow)"""
+        """Test listing models from real MLflow registry"""
         response = client.get("/v2/models")
 
         assert response.status_code == 200
         models = response.json()
         assert isinstance(models, list)
         assert len(models) > 0
+
+        # Verify model structure
+        first_model = models[0]
+        assert "name" in first_model
+        assert "versions" in first_model

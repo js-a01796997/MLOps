@@ -47,14 +47,14 @@ Este comando:
 
 El proyecto incluye pruebas automatizadas completas que validan la calidad de los datos, la funcionalidad del pipeline y los endpoints de la API.
 
-### Ejecutar todas las pruebas
+### Ejecutar pruebas localmente
 
 ```bash
-# Comando rápido
+# Comando rápido (solo pruebas locales, sin E2E)
 pytest -q
 
 # Con salida detallada
-uv run pytest tests/ -v
+uv run pytest -m "not e2e" -v
 
 # Ejecutar solo pruebas unitarias
 uv run pytest -m unit
@@ -62,11 +62,27 @@ uv run pytest -m unit
 # Ejecutar pruebas de integración
 uv run pytest -m integration
 
-# Ejecutar pruebas de API
+# Ejecutar pruebas de API (con mocks)
 uv run pytest -m api
+
+# Ejecutar pruebas E2E (requiere MLflow server)
+export MLFLOW_TRACKING_URI=https://mlflow.labs.jsdevart.com/
+uv run pytest -m e2e -v
 ```
 
-Para más información sobre las pruebas, consulta la documentación completa en `docs/Testing.md`.
+### CI/CD Automatizado
+
+El proyecto usa GitHub Actions para ejecutar pruebas automáticamente:
+- **Pruebas locales**: Se ejecutan en cada pull request (rápidas)
+- **Pruebas E2E**: Se ejecutan después de pasar las pruebas locales (validación con MLflow real)
+
+Ver configuración completa en `docs/CI-CD-Setup.md`
+
+### Documentación de pruebas
+
+- Guía rápida: `TESTING_GUIDE.md`
+- Documentación completa: `docs/Testing.md`
+- Configuración CI/CD: `docs/CI-CD-Setup.md`
 
 ## MLflow Configuration
 
