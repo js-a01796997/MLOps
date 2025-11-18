@@ -1,10 +1,21 @@
 from fastapi import FastAPI
+import os
+import mlflow
 from api_v1 import api_v1
 from api_v2 import api_v2
 
-# NOTAS:
-# Necesita la variable de entorno para conocer donde esta MLFlow
-# export MLFLOW_TRACKING_URI=https://mlflow.labs.jsdevart.com/
+# ========= MLflow Configuration =========
+# Configurar explícitamente el tracking URI desde la variable de entorno
+# Esta configuración se aplica antes de importar los routers para asegurar
+# que MLflow esté configurado cuando api_v2.py use mlflow.pyfunc.load_model()
+MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI")
+if MLFLOW_TRACKING_URI:
+    mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
+    print(f"✓ MLflow Tracking URI configurado: {MLFLOW_TRACKING_URI}")
+else:
+    print("⚠ Advertencia: MLFLOW_TRACKING_URI no está definida. "
+          "MLflow usará el tracking URI por defecto (file:./mlruns). "
+          "Para usar un servidor remoto, exporta: export MLFLOW_TRACKING_URI=<uri>")
 
 app = FastAPI(
     title="Bike Sharing Prediction API (Local and MLflow registry)",
