@@ -1,7 +1,10 @@
 """Simple smoke tests - just check if code imports and runs without crashing"""
 
+import pytest
 import sys
 from pathlib import Path
+
+pytestmark = pytest.mark.unit
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
