@@ -1,0 +1,17 @@
+feature,p_value,drift_detected
+instant,1.0,False
+dteday,0.0,True
+season,1.0,False
+yr,1.0,False
+mnth,1.0,False
+hr,1.0,False
+holiday,1.0,False
+weekday,1.0,False
+workingday,1.0,False
+weathersit,1.0,False
+temp,0.0,True
+atemp,1.0,False
+hum,1.0,False
+windspeed,1.0,False
+casual,1.0,False
+registered,1.0,False
